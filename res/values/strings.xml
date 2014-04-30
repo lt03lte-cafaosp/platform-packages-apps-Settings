@@ -8044,4 +8044,7 @@
     
     <!-- Enable keys backlight-->
     <string name="button_brightness_title">Backlight</string>
+    
+    <!-- Bluetooth settings.  A checkbox to set if we should accept all the file types regardless of their presence in MIME type whitelist -->
+    <string name="bluetooth_accept_all_files">Accept all file types</string>
 </resources>
