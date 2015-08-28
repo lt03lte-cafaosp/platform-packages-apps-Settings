@@ -361,7 +361,8 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
 
     private boolean needDisableDataSub2() {
         boolean disableDataSub2 = false;
-        if (getResources().getBoolean(R.bool.disable_data_sub2)) {
+        if (getResources().getBoolean(R.bool.disable_data_sub2) &&
+                !SystemProperties.getBoolean("persist.radio.ct_class_c", false)) {
             if (TelephonyManager.getDefault().getMultiSimConfiguration().
                 equals(TelephonyManager.MultiSimVariants.DSDS)) {
                 if (mSubInfoList.size() == 2) {
@@ -420,7 +421,8 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         final SubscriptionInfo sir = Utils.findRecordBySubId(getActivity(),
                 SubscriptionManager.getDefaultDataSubId());
         boolean isCellularDataEnabled = false;
-        boolean disableCellulardata = getResources().getBoolean(R.bool.disbale_cellular_data);
+        boolean disableCellulardata = getResources().getBoolean(R.bool.disbale_cellular_data) &&
+                !SystemProperties.getBoolean("persist.radio.ct_class_c", false);
         // Enable data preference in msim mode and call state idle
         boolean callStateIdle = isCallStateIdle();
         if (sir != null) {
@@ -437,6 +439,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         if (disableDds()) {
             isCellularDataEnabled = false;
         }
+        Log.d(TAG, "updateCellularDataValues: enabled:" + isCellularDataEnabled);
 
         simPref.setEnabled(isCellularDataEnabled && (mSelectableSubInfos.size() > 1)
                 && callStateIdle && (!disableCellulardata));
