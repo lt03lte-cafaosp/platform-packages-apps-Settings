@@ -81,6 +81,7 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
     private static final String KEY_BASEBAND_VERSION = "baseband_version";
     private static final String KEY_FIRMWARE_VERSION = "firmware_version";
     private static final String KEY_CUSTOM_BUILD_VERSION = "custom_build_version";
+    private static final String KEY_SECURITY_PATCH = "security_patch";
     private static final String KEY_UPDATE_SETTING = "additional_system_update_settings";
     private static final String KEY_EQUIPMENT_ID = "fcc_equipment_id";
     private static final String PROPERTY_EQUIPMENT_ID = "ro.ril.fccid";
@@ -117,6 +118,13 @@ public class DeviceInfoSettings extends SettingsPreferenceFragment implements In
         findPreference(KEY_FIRMWARE_VERSION).setEnabled(true);
         setStringSummary(KEY_BASEBAND_VERSION, TelephonyManager.getTelephonyProperty(
                 SubscriptionManager.MIN_SUBSCRIPTION_ID_VALUE, "gsm.version.baseband", null));
+        String patch = Build.VERSION.SECURITY_PATCH;
+        if (!"".equals(patch)) {
+            setStringSummary(KEY_SECURITY_PATCH, patch);
+        } else {
+            getPreferenceScreen().removePreference(findPreference(KEY_SECURITY_PATCH));
+
+        }
         setValueSummary(KEY_BASEBAND_VERSION, "gsm.version.baseband");
         setStringSummary(KEY_DEVICE_MODEL, Build.MODEL + getMsvSuffix());
         setStringSummary(KEY_DEVICE_PROCESSOR, getDeviceProcessorInfo());
