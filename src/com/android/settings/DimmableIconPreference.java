@@ -45,7 +45,7 @@ public class DimmableIconPreference extends Preference {
         mContentDescription = contentDescription;
     }
 
-    private void dimIcon(boolean dimmed) {
+    protected void dimIcon(boolean dimmed) {
         Drawable icon = getIcon();
         if (icon != null) {
             icon.mutate().setAlpha(dimmed ? ICON_ALPHA_DISABLED : ICON_ALPHA_ENABLED);
