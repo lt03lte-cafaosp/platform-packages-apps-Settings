@@ -187,6 +187,7 @@ public class WifiCallingStatusContral extends BroadcastReceiver {
                 }
             } else {
                 mWifiTurnOn = false;
+                WifiCallingNotification.cancelWFCNotification(mContext);
             }
         } else if (WifiManager.RSSI_CHANGED_ACTION.equals(action)) {
             WifiManager wifiManager =
@@ -304,6 +305,7 @@ public class WifiCallingStatusContral extends BroadcastReceiver {
         if (mWifiCallTurnOn) {
             if (displayErrorCode) {
                 mWifiCallStatusMsg = mExtraMsg;
+                WifiCallingNotification.updateRegistrationError(mContext, mExtraMsg);
             } else {
                 mWifiCallStatusMsg = mContext.getString(stringID);
             }
