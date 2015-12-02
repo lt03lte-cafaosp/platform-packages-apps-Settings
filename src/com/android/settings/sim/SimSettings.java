@@ -656,9 +656,13 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                             alertDlg.show();
                         } else {
                             Log.d(TAG, "setDefaultDataSubId: " + subId);
-                            mSubscriptionManager.setDefaultDataSubId(subId);
-                            if (subSelectableSize > 1) {
-                                setUserPrefDataSubIdInDb(subId);
+                            if (disableDds()) {
+                                updateCellularDataValues();
+                            } else {
+                                mSubscriptionManager.setDefaultDataSubId(subId);
+                                if (subSelectableSize > 1) {
+                                    setUserPrefDataSubIdInDb(subId);
+                                }
                             }
                         }
                     }
