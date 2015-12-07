@@ -251,6 +251,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                 }
                 // Refresh UI whenever subinfo record gets changed
                 updateAllOptions();
+                initLTEPreference();
             }
         }
     };
@@ -867,6 +868,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                     Utils.findRecordBySubId(getActivity(), subscriptionId).setIconTint(tint);
 
                     updateAllOptions();
+                    initLTEPreference();
                     update();
                     editor.commit();
                 }
