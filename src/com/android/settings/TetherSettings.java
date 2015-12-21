@@ -838,6 +838,7 @@ public class TetherSettings extends SettingsPreferenceFragment
     /* Starts P2P group for Mobile hotspot*/
     private void startAutoGO() {
         if (mWifiP2pManager != null ) {
+            mP2pGoTether.setEnabled(false);
             mWifiP2pManager.enableP2pTethering();
             mWifiP2pManager.createGroup(mChannel,
                     new WifiP2pManager.ActionListener() {
@@ -852,6 +853,7 @@ public class TetherSettings extends SettingsPreferenceFragment
                     }
                     mAutoGoState=false;
                     mP2pGoTether.setChecked(false);
+                    mP2pGoTether.setEnabled(true);
                     mP2pGoTether.setSummary(R.string.p2p_go_hotspot_failed);
                     }
                     });
@@ -914,6 +916,8 @@ public class TetherSettings extends SettingsPreferenceFragment
                     }
                     public void onFailure(int reason) {
                     Log.e(TAG,  "Failed to stop P2P-GO MHS with reason " + reason + ".");
+                    mP2pGoTether.setChecked(true);
+                    mP2pGoTether.setEnabled(true);
                     }
                     });
 
