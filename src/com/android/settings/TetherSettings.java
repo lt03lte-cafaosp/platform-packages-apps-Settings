@@ -494,6 +494,24 @@ public class TetherSettings extends SettingsPreferenceFragment
             mWifiApEnabler.resume();
         }
 
+        mWifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        if (mWifiManager != null) {
+            final boolean wifiEnabled = mWifiManager.isWifiEnabled();
+            if ((mP2pGoTether != null) && !wifiEnabled) {
+                mP2pGoTether.setChecked(false);
+                mP2pGoTether.setSummary("");
+                if (activity != null) {
+                    mP2pGoTether.setSummary(
+                          activity.getString(R.string.p2p_go_tether_disabled));
+                } else {
+                    Log.e(TAG, "**** activity is null ****");
+                }
+                if (mWifiP2pManager != null) {
+                    mWifiP2pManager.disableP2pTethering();
+                }
+                mAutoGoState = false;
+            }
+        }
         if(mAutoGoState) {
             mP2pGoTether.setChecked(true);
             setAutoP2PCallSetupInfo();
