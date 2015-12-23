@@ -613,7 +613,7 @@ public class ApnEditor extends PreferenceActivity
         values.put(Telephony.Carriers.USER, checkNotSet(mUser.getText()));
         values.put(Telephony.Carriers.SERVER, checkNotSet(mServer.getText()));
         values.put(Telephony.Carriers.PASSWORD, checkNotSet(mPassword.getText()));
-        values.put(Telephony.Carriers.MMSC, checkNotSet(mMmsc.getText()));
+        values.put(Telephony.Carriers.MMSC, mMmsc.getText());
 
         String authVal = mAuthType.getValue();
         if (authVal != null) {
