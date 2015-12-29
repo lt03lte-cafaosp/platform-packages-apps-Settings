@@ -92,6 +92,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     private List<SubInfoRecord> mAvailableSubInfos = null;
     private List<SubInfoRecord> mSubInfoList = null;
     private Preference mPrimarySubSelect = null;
+    private boolean mPrimaryPrefRemoved = false;
 
     private static List<MultiSimEnablerPreference> mSimEnablers = null;
 
@@ -410,8 +411,16 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         if (!isPrimarySubFeatureEnable || !primarySetable) {
             final PreferenceCategory simActivities =
                     (PreferenceCategory) findPreference(SIM_ACTIVITIES_CATEGORY);
-            simActivities.removePreference(mPrimarySubSelect);
+            if (!mPrimaryPrefRemoved) {
+                simActivities.removePreference(mPrimarySubSelect);
+                mPrimaryPrefRemoved = true;
+            }
             return;
+        } else if (mPrimaryPrefRemoved == true) {
+            final PreferenceCategory simActivities =
+                    (PreferenceCategory) findPreference(SIM_ACTIVITIES_CATEGORY);
+            simActivities.addPreference(mPrimarySubSelect);
+            mPrimaryPrefRemoved = false;
         }
 
         int primarySlot = getCurrentPrimarySlot();
