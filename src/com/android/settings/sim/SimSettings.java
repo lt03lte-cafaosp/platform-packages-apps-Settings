@@ -117,6 +117,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     private List<SubscriptionInfo> mSelectableSubInfos = null;
 
     private Preference mPrimarySubSelect = null;
+    private boolean mPrimaryPrefRemoved = false;
     private boolean needUpdate = false;
 
     private static final int ASK_VALUE = -1;
@@ -493,8 +494,16 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         if (!isPrimarySubFeatureEnable || !primarySetable) {
             final PreferenceCategory simActivities =
                     (PreferenceCategory) findPreference(SIM_ACTIVITIES_CATEGORY);
-            simActivities.removePreference(mPrimarySubSelect);
+            if (!mPrimaryPrefRemoved) {
+                simActivities.removePreference(mPrimarySubSelect);
+                mPrimaryPrefRemoved = true;
+            }
             return;
+        } else if (mPrimaryPrefRemoved == true) {
+            final PreferenceCategory simActivities =
+                    (PreferenceCategory) findPreference(SIM_ACTIVITIES_CATEGORY);
+            simActivities.addPreference(mPrimarySubSelect);
+            mPrimaryPrefRemoved = false;
         }
 
         int primarySlot = getCurrentPrimarySlot();
@@ -590,6 +599,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                         int phoneId = SubscriptionManager.getPhoneId(defaultDataSubId);
 
                         if (isDdsSwitchAlertDialogSupported(defaultDataSubId) &&
+                                subSelectableSize > 1 &&
                                ((mVoiceNetworkType[phoneId] == TelephonyManager.NETWORK_TYPE_LTE) |
                                 (mDataNetworkType[phoneId] == TelephonyManager.NETWORK_TYPE_LTE))) {
                             Log.d(TAG, "DDS switch request from LTE sub");
