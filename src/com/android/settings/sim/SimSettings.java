@@ -130,8 +130,6 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     private int[] mDataNetworkType;
     private PhoneStateListener[] mPhoneStateListener;
 
-    private boolean inActivity;
-    private boolean dataDisableToastDisplayed = false;
     private AlertDialog mAlertDialog;
     private EditText nameText;
     private int mChangeStartPos;
@@ -409,17 +407,6 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
 
         simPref.setEnabled(isCellularDataEnabled && (mSelectableSubInfos.size() > 1)
                 && callStateIdle && (!disableCellulardata));
-        // Display toast only once when the user enters the activity even though the call moves
-        // through multiple call states (eg - ringing to offhook for incoming calls)
-        if (callStateIdle == false && inActivity && dataDisableToastDisplayed == false) {
-            Toast.makeText(mContext, R.string.data_disabled_in_active_call,
-                    Toast.LENGTH_SHORT).show();
-            dataDisableToastDisplayed = true;
-        }
-        // Reset dataDisableToastDisplayed
-        if (callStateIdle == true) {
-            dataDisableToastDisplayed = false;
-        }
     }
 
     private boolean isCallStateIdle() {
@@ -462,9 +449,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     @Override
     public void onPause() {
         super.onPause();
-        inActivity = false;
         Log.d(TAG,"on Pause");
-        dataDisableToastDisplayed = false;
         for (int i = 0; i < mSimEnablers.size(); ++i) {
             MultiSimEnablerPreference simEnabler = mSimEnablers.get(i);
             if (simEnabler != null) simEnabler.cleanUp();
@@ -475,7 +460,6 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     public void onResume() {
         super.onResume();
 
-        inActivity = true;
         mSubInfoList = mSubscriptionManager.getActiveSubscriptionInfoList();
         if (DBG) log("[onResme] mSubInfoList=" + mSubInfoList);
         initLTEPreference();
