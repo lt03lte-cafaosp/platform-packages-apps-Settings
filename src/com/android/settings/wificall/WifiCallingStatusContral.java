@@ -29,6 +29,8 @@
 
 package com.android.settings.wificall;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -37,10 +39,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Bundle;
 import android.os.Parcelable;
 import android.os.SystemProperties;
 import android.provider.Settings;
 import android.telephony.CellInfo;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -60,6 +64,7 @@ public class WifiCallingStatusContral extends BroadcastReceiver {
     public static final String ACTION_WIFI_CALL_ERROR_CODE = "com.android.wificall.ERRORCODE";
     public static final String ACTION_WIFI_CALL_ERROR_CODE_EXTRA = "com.android.wificall.errorcode.extra";
     public static final String ACTION_IMS_STATE_CHANGE = "com.android.imscontection.DISCONNECTED";
+    public static final String ACTION_WIFI_REFRESH_RADIO = "com.android.wificall.REFRESH_RADIO";
     public static final int WIFI_CALLING_ROVE_IN_THRESHOD = -75;
     public static final String ACTION_WIFI_CALL_READY_STATUS_CHANGE = "com.android.wificall.READY";
     public static final String ACTION_WIFI_CALL_READY_EXTRA = "com.android.wificall.ready.extra";
@@ -70,6 +75,7 @@ public class WifiCallingStatusContral extends BroadcastReceiver {
     private static Context mContext;
     private static int mWifiCallPreferred = -1;
     private static int mErrorCode = -1;
+    private static boolean mIsE911CallOngoing = false;
     private static PhoneStateListener mPhoneStateListener = new PhoneStateListener(){
         public void onCallStateChanged(int state, String incomingNumber) {
             WifiCallingNotification.updateWFCCallStateChange(mContext, state);
@@ -79,6 +85,7 @@ public class WifiCallingStatusContral extends BroadcastReceiver {
     private static final int WIFI_CALLING_STATE_REGISTERED = 1;
     private static final int WIFI_CALLING_STATE_NOT_REGISTERED = 2;
     private static final int WIFI_CALLING_STATE_REGISTERING = 3;
+    private static final long REFRESH_RADIO_TIMER_AFTER_E911 = 180000;
 
     private static boolean mWifiTurnOn = false;
     private static boolean mWifiConnected = false;
@@ -348,6 +355,11 @@ public class WifiCallingStatusContral extends BroadcastReceiver {
     private static boolean mSetRadioPowerOff = false;
     private static boolean mSetRadioPowerOn = false;
     private void updateRadioStatus() {
+        if (!mIsE911CallOngoing) {
+            Log.d(TAG, "do not change radio during E911 call procedure");
+            return;
+        }
+
         if (cellularNetworkIsAvailable()) {
             mSetRadioPowerOn = true;
             mSetRadioPowerOff = false;
@@ -388,6 +400,16 @@ public class WifiCallingStatusContral extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
+        mContext = context;
+        if (action.equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
+             handlePhoneStateChange(context,intent);
+             return;
+        } else if (action.equals(ACTION_WIFI_REFRESH_RADIO)) {
+             mIsE911CallOngoing = false;
+             WifiCallingNotification.getIntance().updateWFCStatusChange(mContext, mWifiCallReady);
+             updateRadioStatus();
+             return;
+        }
         if (!ACTION_WIFI_CALL_TURN_OFF.equals(action)
                 && !ACTION_WIFI_CALL_TURN_ON.equals(action)
                 && !WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
@@ -402,8 +424,6 @@ public class WifiCallingStatusContral extends BroadcastReceiver {
             if (DEBUG) Log.d(TAG, "getIntent : " + intent.getAction() + " flag : false");
             return;
         }
-
-        mContext = context;
         if (mWifiCallPreferred == -1) {
             readPreference();
             getWifiStatus();
@@ -430,5 +450,28 @@ public class WifiCallingStatusContral extends BroadcastReceiver {
         handleWFCErrorMsg();
         broadcastWifiCallErrorCode();
         updateRadioStatus();
+    }
+
+    private void handlePhoneStateChange(Context ctx, Intent intent) {
+        Bundle bundle = intent.getExtras();
+        if (bundle == null) {
+            return;
+        }
+        String state = bundle.getString(TelephonyManager.EXTRA_STATE);
+        if (state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
+            String strDialString = bundle.getString(TelephonyManager.EXTRA_INCOMING_NUMBER);
+            if (PhoneNumberUtils.isEmergencyNumber(strDialString)) {
+                mIsE911CallOngoing = true;
+                WifiCallingNotification.cancelWFCNotification(mContext);
+            }
+        } else if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+            if (!mIsE911CallOngoing) {
+                 AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+                 long retryAt = System.currentTimeMillis() + REFRESH_RADIO_TIMER_AFTER_E911;
+                 Intent refreshRadioIntent = new Intent(ACTION_WIFI_REFRESH_RADIO);
+                 PendingIntent tempIntent = PendingIntent.getBroadcast(ctx, 0, refreshRadioIntent, 0);
+                 am.setExact(AlarmManager.RTC, retryAt, tempIntent);
+            }
+        }
     }
 }
