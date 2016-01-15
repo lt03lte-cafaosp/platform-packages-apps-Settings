@@ -121,6 +121,10 @@ public class WifiCallingNotification {
         notiManager.cancel(id);
     }
 
+    public static void cancelWFCNotification(Context context) {
+        cancelNotification(context, WIFI_CALLING_NOTIFICAION_ID);
+    }
+
     private static Notification.Builder buildNotication(Context context, int flag, String strNotification){
         if (mBuilder == null) {
             mBuilder = new Builder(context);
