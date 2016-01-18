@@ -157,7 +157,6 @@ public class WifiConfigController implements TextWatcher,
     private Context mContext;
     private TelephonyManager mTelephonyManager;
     private SubscriptionManager mSubscriptionManager = null;
-    private String selectedSimCardName;
     private int selectedSimCardNumber;
 
 
@@ -466,9 +465,7 @@ public class WifiConfigController implements TextWatcher,
                     case Eap.SIM:
                     case Eap.AKA:
                     case Eap.AKA_PRIME:
-                        selectedSimCardName = (String)mSimCardSpinner.getSelectedItem();
-                        selectedSimCardNumber = mSimDisplayNames.
-                              indexOf(selectedSimCardName) + 1;
+                        selectedSimCardNumber = mSimCardSpinner.getSelectedItemPosition() + 1;
                         config.SIMNum = selectedSimCardNumber;
                         break;
                     default:
@@ -808,7 +805,10 @@ public class WifiConfigController implements TextWatcher,
             case WIFI_EAP_METHOD_SIM:
             case WIFI_EAP_METHOD_AKA:
             case WIFI_EAP_METHOD_AKA_PRIME:
-                WifiConfiguration config = mAccessPoint.getConfig();
+                WifiConfiguration config = null;
+                if (mAccessPoint != null) {
+                    config = mAccessPoint.getConfig();
+                }
                 ArrayAdapter<String> eapSimAdapter = new ArrayAdapter<String>(
                          mContext, android.R.layout.simple_spinner_item,
                          mSimDisplayNames.toArray(new String[mSimDisplayNames.size()])
