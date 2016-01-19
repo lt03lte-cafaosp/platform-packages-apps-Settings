@@ -60,6 +60,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import android.preference.SwitchPreference;
+import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import com.android.ims.ImsManager;
 import com.android.ims.ImsException;
@@ -660,7 +661,21 @@ public class WirelessSettings extends SettingsPreferenceFragment
         boolean isWfcNonImsPdn = SystemProperties.getBoolean(
                 "persist.radio.wfc_non-ims_pdn", false);
 
-        return context.getResources().getBoolean(
-                R.bool.config_wifi_calling_settings_supported) || isWfcNonImsPdn;
+        boolean isWifiCallingSupported = false;
+        List<SubscriptionInfo> subInfoList =
+                SubscriptionManager.from(context).getActiveSubscriptionInfoList();
+
+        if (subInfoList != null) {
+            for (SubscriptionInfo sir : subInfoList) {
+                if (SubscriptionManager.isValidSubscriptionId(sir.getSubscriptionId())) {
+                    Resources subRes = SubscriptionManager.getResourcesForSubId(context,
+                            sir.getSubscriptionId());
+                    isWifiCallingSupported = subRes.getBoolean(R.bool.
+                            config_wifi_calling_settings_supported);
+                    if (isWifiCallingSupported) break;
+                }
+            }
+        }
+        return isWifiCallingSupported || isWfcNonImsPdn;
     }
 }
