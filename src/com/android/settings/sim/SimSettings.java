@@ -108,6 +108,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     private static final String KEY_PRIMARY_SUB_SELECT = "select_primary_sub";
     private static final String SETTING_USER_PREF_DATA_SUB = "user_preferred_data_sub";
     private static final String DISPLAY_NUMBERS_TYPE = "display_numbers_type";
+    private static final String SETTING_USER_PREF_PRIMARY_SUB = "user_preferred_primary_sub";
 
     private int mPreferredDataSubscription;
 
@@ -555,10 +556,46 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         mPrimarySubSelect.setEnabled(isManualMode);
     }
 
+    public boolean isDetect4gCardEnabled() {
+        return SystemProperties.getBoolean("persist.radio.detect4gcard", false) &&
+                SystemProperties.getBoolean("persist.radio.primarycard", false);
+    }
+
+    public int getUserPrefPrimarySlotFromDB() {
+        if (isDetect4gCardEnabled()) {
+            List<SubscriptionInfo> sirList =
+                    SubscriptionManager.from(mContext).getActiveSubscriptionInfoList();
+            if (sirList != null ) {
+                for (SubscriptionInfo sir : sirList) {
+                    if (sir != null && sir.getSubscriptionId() > 0 && sir.getSimSlotIndex() >= 0
+                            && getUserPrefPrimarySubIdFromDB() == sir.getSubscriptionId() &&
+                            sir.getStatus() != SubscriptionManager.INACTIVE) {
+                        return sir.getSimSlotIndex();
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    public  int getUserPrefPrimarySubIdFromDB() {
+        int subId = SubscriptionManager.INVALID_SUBSCRIPTION_ID;
+        subId = android.provider.Settings.Global.getInt(mContext
+                .getContentResolver(), SETTING_USER_PREF_PRIMARY_SUB, subId);
+        logd("getUserPrefPrimarySubIdFromDB: " + subId);
+        return subId;
+    }
+
     public int getCurrentPrimarySlot() {
         for (int index = 0; index < mNumSlots; index++) {
             int current = getPreferredNetwork(index);
-            if (current == Phone.NT_MODE_TD_SCDMA_GSM_WCDMA_LTE
+            if (isDetect4gCardEnabled()) {
+                if (getUserPrefPrimarySlotFromDB() == index) {
+                    return index;
+                } else if (current != Phone.NT_MODE_GSM_ONLY) {
+                    return index;
+                }
+            } else if (current == Phone.NT_MODE_TD_SCDMA_GSM_WCDMA_LTE
                     || current == Phone.NT_MODE_TD_SCDMA_GSM_WCDMA) {
                 return index;
             }
