@@ -112,6 +112,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     private boolean dataDisableToastDisplayed = false;
 
     private SubscriptionManager mSubscriptionManager;
+    private Context mContext;
 
     public SimSettings() {
         super(DISALLOW_CONFIG_SIM);
@@ -121,7 +122,8 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     public void onCreate(final Bundle bundle) {
         super.onCreate(bundle);
         Log.d(TAG,"on onCreate");
-        
+        mContext = getActivity();
+
         mSubscriptionManager = SubscriptionManager.from(getActivity());
         final TelephonyManager tm =
                     (TelephonyManager) getActivity().getSystemService(Context.TELEPHONY_SERVICE);
@@ -456,7 +458,9 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         } else {
             mPrimarySubSelect.setSummary("");
         }
-        mPrimarySubSelect.setEnabled(isManualMode);
+
+        mPrimarySubSelect.setEnabled(isDetect4gCardEnabled() ? (mAvailableSubInfos.size() > 1)
+                : isManualMode);
     }
 
     public boolean isDetect4gCardEnabled() {
@@ -575,7 +579,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                         int phoneId = mSubscriptionManager.getPhoneId(defaultDataSubId);
 
                         if (isDdsSwitchAlertDialogSupported(defaultDataSubId) &&
-                                subSelectableSize > 1 &&
+                                subAvailableSize > 1 &&
                                ((mVoiceNetworkType[phoneId] == TelephonyManager.NETWORK_TYPE_LTE) |
                                 (mDataNetworkType[phoneId] == TelephonyManager.NETWORK_TYPE_LTE))) {
                             Log.d(TAG, "DDS switch request from LTE sub");
