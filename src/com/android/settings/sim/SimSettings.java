@@ -437,7 +437,9 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         } else {
             mPrimarySubSelect.setSummary("");
         }
-        mPrimarySubSelect.setEnabled(isManualMode);
+
+        mPrimarySubSelect.setEnabled(isDetect4gCardEnabled() ? (mAvailableSubInfos.size() > 1)
+                : isManualMode);
     }
 
     public boolean isDetect4gCardEnabled() {
