@@ -369,9 +369,8 @@ public class WifiCallingStatusContral extends BroadcastReceiver {
         }
         Log.d(TAG, "mSetRadioPowerOff = " + mSetRadioPowerOff
                 + ", mSetRadioPowerOn = " + mSetRadioPowerOn);
-        if (mWifiCallPreferred == ImsConfig.WifiCallingPreference.WIFI_ONLY) {
-            if (!mSetRadioPowerOff && mWifiCallTurnOn
-                    && !isAirplaneModeOn() && cellularNetworkIsAvailable()) {
+        if (mWifiCallPreferred == ImsConfig.WifiCallingPreference.WIFI_ONLY && mWifiCallTurnOn) {
+            if (!mSetRadioPowerOff && !isAirplaneModeOn() && cellularNetworkIsAvailable()) {
                 getTelephonyManager().setRadioPower(false);
                 Log.d(TAG, "updateRadioStatus, turn radio off");
             }
