@@ -312,10 +312,11 @@ public class ApnEditor extends InstrumentedPreferenceActivity
 
             if (mNewApn && getResources().getBoolean(R.bool.config_default_apn_for_new)) {
                 mProtocol.setValueIndex(DEFAULT_IPV4V6_INDEX);
+                mRoamingProtocol.setValueIndex(DEFAULT_IPV4V6_INDEX);
             } else {
                 mProtocol.setValue(mCursor.getString(PROTOCOL_INDEX));
+                mRoamingProtocol.setValue(mCursor.getString(ROAMING_PROTOCOL_INDEX));
             }
-            mRoamingProtocol.setValue(mCursor.getString(ROAMING_PROTOCOL_INDEX));
             mCarrierEnabled.setChecked(mCursor.getInt(CARRIER_ENABLED_INDEX)==1);
             mBearerInitialVal = mCursor.getInt(BEARER_INDEX);
 
@@ -359,6 +360,12 @@ public class ApnEditor extends InstrumentedPreferenceActivity
                     getPreferenceScreen().removePreference(mPppNumber);
                 }
             }
+
+            String localizedName = ApnSettings.getLocalizedName(this, mCursor,NAME_INDEX);
+            if (!TextUtils.isEmpty(localizedName)) {
+                mName.setText(localizedName);
+            }
+
         }
 
         mName.setSummary(checkNull(mName.getText()));
@@ -522,15 +529,15 @@ public class ApnEditor extends InstrumentedPreferenceActivity
             if (protocol == null) {
                 return false;
             }
-            mProtocol.setSummary(protocol);
             mProtocol.setValue((String) newValue);
+            mProtocol.setSummary(protocol);
         } else if (KEY_ROAMING_PROTOCOL.equals(key)) {
             String protocol = protocolDescription((String) newValue, mRoamingProtocol);
             if (protocol == null) {
                 return false;
             }
-            mRoamingProtocol.setSummary(protocol);
             mRoamingProtocol.setValue((String) newValue);
+            mRoamingProtocol.setSummary(protocol);
         } else if (KEY_BEARER_MULTI.equals(key)) {
             String bearer = bearerMultiDescription((Set<String>) newValue);
             if (bearer == null) {

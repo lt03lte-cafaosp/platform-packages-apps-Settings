@@ -251,6 +251,8 @@ public class SettingsActivity extends Activity
     private CharSequence mInitialTitle;
     private int mInitialTitleResId;
 
+    private SmqSettings mSMQ;
+
     // Show only these settings for restricted users
     private int[] SETTINGS_FOR_RESTRICTED = {
             R.id.wireless_section,
@@ -547,6 +549,8 @@ public class SettingsActivity extends Activity
             getWindow().setUiOptions(intent.getIntExtra(EXTRA_UI_OPTIONS, 0));
         }
 
+        mSMQ = new SmqSettings(getApplicationContext());
+
         mDevelopmentPreferences = getSharedPreferences(DevelopmentSettings.PREF_FILE,
                 Context.MODE_PRIVATE);
 
@@ -810,6 +814,8 @@ public class SettingsActivity extends Activity
             MetricsLogger.visible(this, MetricsLogger.MAIN_SETTINGS);
         }
 
+        mSMQ.onResume();
+
         final int newHomeActivityCount = getHomeActivitiesCount();
         if (newHomeActivityCount != mHomeActivitiesCount) {
             mHomeActivitiesCount = newHomeActivityCount;
@@ -827,7 +833,11 @@ public class SettingsActivity extends Activity
 
         registerReceiver(mBatteryInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
-        mDynamicIndexableContentMonitor.register(this);
+        try {
+            mDynamicIndexableContentMonitor.register(this);
+        } catch (IllegalStateException e) {
+
+        }
 
         if(mDisplaySearch && !TextUtils.isEmpty(mSearchQuery)) {
             onQueryTextSubmit(mSearchQuery);
@@ -841,7 +851,11 @@ public class SettingsActivity extends Activity
             MetricsLogger.hidden(this, MetricsLogger.MAIN_SETTINGS);
         }
         unregisterReceiver(mBatteryInfoReceiver);
-        mDynamicIndexableContentMonitor.unregister();
+        try {
+            mDynamicIndexableContentMonitor.unregister();
+        } catch (IllegalStateException e) {
+
+        }
     }
 
     @Override
@@ -1310,6 +1324,10 @@ public class SettingsActivity extends Activity
                     }
                 } else if (id == R.id.global_roaming_settings) {
                     if (!getResources().getBoolean(R.bool.config_roamingsettings_enabled)) {
+                        removeTile = true;
+                    }
+                } else if (id == R.id.qtifeedback_settings){
+                    if (!mSMQ.isShowSmqSettings()) {
                         removeTile = true;
                     }
                 }

@@ -35,6 +35,7 @@ import android.os.storage.VolumeInfo;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.text.format.Formatter;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -174,7 +175,16 @@ public class AppStorageSettings extends AppInfoWithHeader
             if (mClearCacheObserver == null) {
                 mClearCacheObserver = new ClearCacheObserver();
             }
-            mPm.deleteApplicationCacheFiles(mPackageName, mClearCacheObserver);
+
+        new AlertDialog.Builder(getActivity())
+            .setMessage(getActivity().getText(R.string.memory_clear_cache_title))
+            .setPositiveButton(R.string.dlg_ok,new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    mPm.deleteApplicationCacheFiles(mPackageName, mClearCacheObserver);
+                }
+            })
+            .setNegativeButton(R.string.dlg_cancel, null)
+            .create().show();
         } else if (v == mClearDataButton) {
             if (mAppEntry.info.manageSpaceActivityName != null) {
                 if (!Utils.isMonkeyRunning()) {
@@ -223,6 +233,22 @@ public class AppStorageSettings extends AppInfoWithHeader
             return mInvalidSizeStr.toString();
         }
         return Formatter.formatFileSize(getActivity(), size);
+    }
+
+    private boolean isCacheClearableApp(){
+        String currentPkgName = this.mPackageInfo.packageName;
+        String [] appPackageName = getResources().getStringArray(
+                R.array.no_cache_clear_package_list);
+        if (TextUtils.isEmpty(currentPkgName)) {
+            return false;
+        }
+        int length = appPackageName.length;
+        for (int i = 0; i < length; i++) {
+            if (currentPkgName.equals(appPackageName[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void refreshSizeInfo() {
@@ -279,7 +305,7 @@ public class AppStorageSettings extends AppInfoWithHeader
                 mClearDataButton.setEnabled(true);
                 mClearDataButton.setOnClickListener(this);
             }
-            if (cacheSize <= 0) {
+            if (cacheSize <= 0 || !isCacheClearableApp()) {
                 mClearCacheButton.setEnabled(false);
             } else {
                 mClearCacheButton.setEnabled(true);

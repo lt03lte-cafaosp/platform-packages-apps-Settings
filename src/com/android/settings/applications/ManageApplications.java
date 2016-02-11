@@ -187,6 +187,7 @@ public class ManageApplications extends InstrumentedFragment
 
     // whether showing system apps.
     private boolean mShowSystem;
+    private boolean isCurrentLoading;
 
     private ApplicationsState mApplicationsState;
 
@@ -238,10 +239,13 @@ public class ManageApplications extends InstrumentedFragment
     public EditText mTextView;
     public TextView mSearchTitle;
 
+    private static boolean isManageApps;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        isCurrentLoading = true;
         mApplicationsState = ApplicationsState.getInstance(getActivity().getApplication());
 
         Intent intent = getActivity().getIntent();
@@ -252,6 +256,7 @@ public class ManageApplications extends InstrumentedFragment
         }
         if (className.equals(AllApplicationsActivity.class.getName())) {
             mShowSystem = true;
+            isManageApps = true;
         } else if (className.equals(NotificationAppListActivity.class.getName())) {
             mListType = LIST_TYPE_NOTIFICATION;
             mNotifBackend = new NotificationBackend();
@@ -455,9 +460,11 @@ public class ManageApplications extends InstrumentedFragment
             if (!TextUtils.isEmpty(mTextView.getText().toString())) {
                 mTextView.setText("");
             }
+            if (isCurrentLoading) {
             mApplications.setFilterPrefix("");
             mApplications.resume(mSortOrder);
             mApplications.updateLoading();
+            }
         }
     }
 
@@ -492,6 +499,7 @@ public class ManageApplications extends InstrumentedFragment
             mApplications.release();
         }
         mRootView = null;
+        isManageApps = false;
     }
 
     @Override
@@ -1049,7 +1057,7 @@ public class ManageApplications extends InstrumentedFragment
 
         @Override
         public void onLauncherInfoChanged() {
-            if (!mManageApplications.mShowSystem) {
+            if (isManageApps || !mManageApplications.mShowSystem) {
                 rebuild(false);
             }
         }
