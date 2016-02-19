@@ -59,6 +59,10 @@ public class WifiCallingWizardActivity extends Activity{
         private ImageView mImage;
         private TextView mStepText;
 
+        public WizardFragment() {
+
+        }
+
         @Override
         public void onCreate(Bundle savedInstanceState) {
             // TODO Auto-generated method stub
