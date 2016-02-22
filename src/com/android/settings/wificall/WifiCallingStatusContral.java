@@ -68,8 +68,8 @@ public class WifiCallingStatusContral extends BroadcastReceiver {
     public static final int WIFI_CALLING_ROVE_IN_THRESHOD = -75;
     public static final String ACTION_WIFI_CALL_READY_STATUS_CHANGE = "com.android.wificall.READY";
     public static final String ACTION_WIFI_CALL_READY_EXTRA = "com.android.wificall.ready.extra";
-    public static final String SYSTEM_PROPERTY_WIFI_CALL_READY = "persist.sys.wificall.ready";
-    public static final String SYSTEM_PROPERTY_WIFI_CALL_STATUS_MSG = "persist.sys.wificall.status.msg";
+    public static final String SYSTEM_PROPERTY_WIFI_CALL_READY = "sys.wificall.ready";
+    public static final String SYSTEM_PROPERTY_WIFI_CALL_STATUS_MSG = "sys.wificall.status.msg";
     public static final String SYSTEM_PROPERTY_WIFI_CALL_TURNON = "persist.sys.wificall.turnon";
 
     private static Context mContext;
