@@ -44,6 +44,7 @@ import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.ims.ImsManager;
 import com.android.internal.logging.MetricsLogger;
@@ -53,6 +54,7 @@ import com.android.settings.nfc.NfcEnabler;
 import com.android.settings.search.BaseSearchIndexProvider;
 import com.android.settings.search.Indexable;
 import com.android.settings.wificall.WifiCallSwitchPreference;
+import com.android.settings.wificall.WifiCallingStatusControl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -557,10 +559,15 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
         boolean isSupportWFC = ImsManager.isWfcEnabledByPlatform(ctx);
         if(DEBUG) Log.d(TAG, "updateEnhancedWFCSettings, isSupportWFC = " +
                 isSupportWFC);
-        if(!isSupportWFC) {
+        if(!isSupportWFC &&
+            !(WifiCallingStatusControl.isWfcOnGBASim(ctx) &&
+            WifiCallingStatusControl.isImsGBAAvailable())) {
             getPreferenceScreen().removePreference(
                     findPreference(KEY_WIFI_CALL_SETTINGS));
             getPreferenceScreen().removePreference(findPreference(KEY_WFC_SETTINGS));
+            if (WifiCallingStatusControl.isWfcOnGBASim(ctx))
+                Toast.makeText(ctx, R.string.wifi_call_without_GBA_sim_error_message,
+                        Toast.LENGTH_LONG).show();
             return;
         }
         if (!mWifiCallSettingsEnabled) {

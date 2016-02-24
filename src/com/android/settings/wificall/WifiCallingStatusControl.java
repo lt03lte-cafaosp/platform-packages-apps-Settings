@@ -65,6 +65,7 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
     public static final String ACTION_WIFI_CALL_ERROR_CODE_EXTRA =
             "com.android.wificall.errorcode.extra";
     public static final String ACTION_IMS_STATE_CHANGE = "com.android.imscontection.DISCONNECTED";
+    private static final String ACTION_CAP_NO_SUPPORT = "android.intent.action.SHOW_CAP_NO_SUPPORT";
     public static final String ACTION_WIFI_REFRESH_RADIO = "com.android.wificall.REFRESH_RADIO";
     public static final int WIFI_CALLING_ROVE_IN_THRESHOD = -75;
     public static final String ACTION_WIFI_CALL_READY_STATUS_CHANGE = "com.android.wificall.READY";
@@ -90,6 +91,7 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
     private static int mWifiCallPreferred = -1;
     private static int mErrorCode = -1;
     private static boolean mIsE911CallOngoing = false;
+    private static boolean mImsGBAAvailable = false;
     private static PhoneStateListener mPhoneStateListener = new PhoneStateListener(){
         public void onCallStateChanged(int state, String incomingNumber) {
             WifiCallingNotification.updateWFCCallStateChange(mContext, state);
@@ -482,6 +484,11 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
             if (DEBUG) Log.d(TAG, "getIntent : " + intent.getAction() + " flag : false");
             return;
         }
+        if (ACTION_CAP_NO_SUPPORT.equals(action)) {
+            mImsGBAAvailable = intent.getBooleanExtra(
+                "android.intent.action.SHOW_CAP_NO_SUPPORT.GBAAvailable", false);
+            return;
+        }
         mContext = context;
         if (Intent.ACTION_BOOT_COMPLETED.equals(action) && isFirstBoot()) {
             if (DEBUG) Log.d(TAG, "getIntent : " + intent.getAction());
@@ -556,5 +563,14 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
                  am.setExact(AlarmManager.RTC, retryAt, tempIntent);
             }
         }
+    }
+
+    public static boolean isWfcOnGBASim(Context context) {
+        return context.getResources().getBoolean(
+            R.bool.config_regional_wifi_call_on_gba_sim);
+    }
+
+    public static boolean isImsGBAAvailable() {
+        return mImsGBAAvailable;
     }
 }

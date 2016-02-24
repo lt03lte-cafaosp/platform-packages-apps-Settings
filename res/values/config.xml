@@ -114,4 +114,6 @@
     <bool name="config_show_account_preference" translatable="false">false</bool>
     <!-- Config to suppress wifi call error notification -->
     <bool name="config_regional_suppress_wifi_call_error_notification">false</bool>
+    <!-- wifi call register to SIP IMS on GBA capable SIM card -->
+    <bool name="config_regional_wifi_call_on_gba_sim">false</bool>
 </resources>
