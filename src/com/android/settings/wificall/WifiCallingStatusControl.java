@@ -78,8 +78,8 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
     private static final String SHAREDPREFERENCES_NAME = "MY_PERFS";
     private static final String WIFI_CALLING_PREFERENCE = "currentWifiCallingPreference";
     private static final String WIFI_CALLING_STATE = "currentWifiCallingStatus";
-    private static final String WIFI_CALLING_ENABLED = "yes";
-    private static final String WIFI_CALLING_DISABLED = "on";
+    private static final String WIFI_CALLING_ENABLED = "true";
+    private static final String WIFI_CALLING_DISABLED = "false";
     private static final String ACTION_EXTRA = "preference";
     private static final String ACTION_RESULT = "result";
     private static final String TAG = WifiCallingStatusControl.class.getSimpleName();
@@ -515,13 +515,13 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
 
         boolean wifiCallState = mWifiCallTurnOn &&
                     mWifiConnected && mImsRegisted && !mIsWifiSignalWeak;
+        SystemProperties.set(SYSTEM_PROPERTY_WIFI_CALL_READY,
+                    (wifiCallState ? WIFI_CALLING_ENABLED : WIFI_CALLING_DISABLED));
         if (mWifiCallReady != wifiCallState) {
             mWifiCallReady = wifiCallState;
             updateWFCReadyIcon();
             updateWFCInCallIcon();
             if (WifiCallStatusChanged) {
-                SystemProperties.set(SYSTEM_PROPERTY_WIFI_CALL_READY,
-                    (mWifiCallReady ? WIFI_CALLING_ENABLED : WIFI_CALLING_DISABLED));
                 broadcastWifiCallReadyStatus();
             }
         }
