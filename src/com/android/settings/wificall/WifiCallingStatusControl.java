@@ -250,6 +250,9 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
                .getSystemService(Context.CONNECTIVITY_SERVICE);
         mWifiNetwork = connect.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         mWifiConnected = mWifiNetwork != null && mWifiNetwork.isConnected();
+        if (!mWifiConnected) {
+            WifiCallingNotification.cancelNotification(mContext);
+        }
         if (DEBUG) Log.d(TAG, "mWifiConnected = " + mWifiConnected);
     }
 
