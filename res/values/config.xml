@@ -116,4 +116,6 @@
     <bool name="config_regional_suppress_wifi_call_error_notification">false</bool>
     <!-- wifi call register to SIP IMS on GBA capable SIM card -->
     <bool name="config_regional_wifi_call_on_gba_sim">false</bool>
+    <!-- wifi call only when phone in roaming network -->
+    <bool name="config_regional_wifi_call_only_in_roaming">false</bool>
 </resources>

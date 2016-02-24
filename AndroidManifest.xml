@@ -2620,6 +2620,7 @@
                 <action android:name="android.intent.action.PHONE_STATE"></action>
                 <action android:name="com.android.wificall.REFRESH_RADIO"></action>
                 <action android:name="android.intent.action.SHOW_CAP_NO_SUPPORT"></action>
+                <action android:name="android.intent.action.SERVICE_STATE"></action>
             </intent-filter>
         </receiver>
 
