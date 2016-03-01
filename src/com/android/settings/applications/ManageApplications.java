@@ -641,6 +641,7 @@ public class ManageApplications extends InstrumentedFragment
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (mApplications != null && mApplications.getCount() > position) {
+            isCurrentLoading = false;
             ApplicationsState.AppEntry entry = mApplications.getAppEntry(position);
             mCurrentPkgName = entry.info.packageName;
             mCurrentUid = entry.info.uid;
