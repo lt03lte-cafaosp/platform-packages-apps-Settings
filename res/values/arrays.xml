@@ -329,6 +329,15 @@
         <item>AKA\'</item>
     </string-array>
 
+    <!-- Match this with the constants in WifiDialog by carrier function. --> <skip />
+    <!-- Wi-Fi settings.  The type of EAP method a Wi-Fi network has. -->
+    <string-array name="wifi_eap_method_carrier_function">
+        <!-- Do not translate. -->
+        <item>PEAP</item>
+        <!-- Do not translate. -->
+        <item>SIM</item>
+    </string-array>
+
     <!-- Type of EAP method when EAP SIM, AKA, AKA' are not supported -->
     <string-array name="eap_method_without_sim_auth">
         <!-- Do not translate. -->

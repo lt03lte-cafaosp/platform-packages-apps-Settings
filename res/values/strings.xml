@@ -7315,4 +7315,7 @@ ation on your phone or online at https://my.t-mobile.com under Manage > Plans an
     <string name="lte_data_service_enabled">LTE data service enabled </string>
     <string name="app_ops_permiss_name">App network access</string>
     <string name="add_operator_account_label">iTelcel</string>
+    <!-- Label for the EAP identity of the network by carrier function-->
+    <string name="wifi_eap_identity_carrier_function">Username</string>
+    <string name="wifi_eap_carrier_function_name">CMCC</string>
 </resources>
