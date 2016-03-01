@@ -805,7 +805,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                     break;
 
                 case RESULT_ALERT_DLG_ID:
-                    String msg = mCurrentUiccProvisionState ? mContext
+                    String msg = mIsChecked ? mContext
                             .getString(R.string.sub_activate_success)
                             : mContext
                                     .getString(R.string.sub_deactivate_success);
