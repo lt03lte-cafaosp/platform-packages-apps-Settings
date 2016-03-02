@@ -18,6 +18,7 @@ package com.android.settings.deviceinfo;
 
 import static com.android.settings.deviceinfo.StorageSettings.TAG;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -30,6 +31,7 @@ import android.content.pm.IPackageDataObserver;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.UserHandle;
@@ -362,6 +364,16 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
         migrate.setVisible((privateVol != null)
                 && (privateVol.getType() == VolumeInfo.TYPE_PRIVATE)
                 && !Objects.equals(mVolume, privateVol));
+
+        SharedPreferences migrateSp = getActivity().getSharedPreferences(
+                StorageWizardMigrateProgress.STORAGE_MIGRATE,
+                Activity.MODE_PRIVATE);
+        if (migrateSp != null) {
+            boolean isFinished = migrateSp.getBoolean(
+                    StorageWizardMigrateProgress.IS_MIGRATE_FINISH, true);
+            // set the status of the migrating data menu item
+            migrate.setEnabled(isFinished);
+        }
     }
 
     @Override
