@@ -504,8 +504,10 @@ public class MSimStatus extends PreferenceActivity {
                 if (cbMessage != null && cbMessage.getServiceCategory() == 50) {
                     int subId = cbMessage.getSubId();
                     int phoneId = SubscriptionManager.getSlotId(subId);
-                    String latestAreaInfo = cbMessage.getMessageBody();
-                    updateAreaInfo(latestAreaInfo, phoneId);
+                    if (SubscriptionManager.isValidSlotId(phoneId)) {
+                        String latestAreaInfo = cbMessage.getMessageBody();
+                        updateAreaInfo(latestAreaInfo, phoneId);
+                    }
                 }
             }
         }
