@@ -47,6 +47,7 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static com.android.internal.util.Preconditions.checkNotNull;
 import static com.android.settings.Utils.prepareCustomPreferencesList;
 import android.animation.LayoutTransition;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -64,6 +65,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.UserInfo;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -96,9 +98,12 @@ import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.text.format.Formatter;
 import android.text.format.Time;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -106,6 +111,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -127,6 +133,7 @@ import android.widget.TabHost.TabSpec;
 import android.widget.TabWidget;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.telephony.PhoneConstants;
@@ -361,6 +368,49 @@ public class DataUsageSummary extends HighlightingFragment implements Indexable 
         }
 
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Activity activity = getActivity();
+        float titleTextSize;
+        int actionBarHeight;
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            titleTextSize = activity.getResources().getDimensionPixelSize(
+                    R.dimen.datausage_landscape_title_textsize);
+            actionBarHeight = activity.getResources().getDimensionPixelSize(
+                    R.dimen.datausage_landscape_actionbar_height);
+        } else {
+            titleTextSize = activity.getResources().getDimensionPixelSize(
+                    R.dimen.datausage_portrait_title_textsize);
+            actionBarHeight = activity.getResources().getDimensionPixelSize(
+                    R.dimen.datausage_portrait_actionbar_height);
+        }
+        resetBarSize(titleTextSize, actionBarHeight);
+    }
+
+    private void resetBarSize(float titleTextSize, int actionBarHeight) {
+        Activity activity = getActivity();
+        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
+        int titleId = Resources.getSystem().getIdentifier("action_bar", "id", "android");
+        Toolbar toolbar = (Toolbar) activity.getWindow().findViewById(titleId);
+        TextView title = null;
+        if (toolbar != null) {
+            LayoutParams layoutParams = toolbar.getLayoutParams();
+            layoutParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                    actionBarHeight, displayMetrics);
+            for (int i = 0; i < toolbar.getChildCount(); ++i) {
+                if (toolbar.getChildAt(i) instanceof TextView) {
+                    title = (TextView) toolbar.getChildAt(i);
+                }
+                Toolbar.LayoutParams childLayoutParams = (Toolbar.LayoutParams) toolbar.getChildAt(
+                        i).getLayoutParams();
+                childLayoutParams.gravity = Gravity.CENTER_VERTICAL;
+            }
+        }
+        if (title != null)
+            title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, titleTextSize);
     }
 
     @Override
