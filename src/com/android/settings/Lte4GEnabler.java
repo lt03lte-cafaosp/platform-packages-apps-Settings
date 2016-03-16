@@ -38,6 +38,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Messenger;
 import android.provider.Settings;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.provider.Settings.SettingNotFoundException;
 import android.util.Log;
@@ -51,25 +53,28 @@ import com.android.internal.telephony.PhoneConstants;
 
 public class Lte4GEnabler {
     private static final String TAG = "Lte4GEnabler";
+    public static final String SETTING_PRE_NW_MODE_DEFAULT = "preferred_network_mode_default";
+    public static final String SETTING_PREF_NETWORK_BAND = "network_band_preferred";
+    private static final Uri URI_PHONE_FEATURE = Uri
+            .parse("content://com.qualcomm.qti.phonefeature.FEATURE_PROVIDER");
+    private static final int sPhoneCount = TelephonyManager.getDefault().getPhoneCount();
+    private static final int LTE_FULL = 1;
+    private static final int LTE_TDD = 2;
+
     private final Context mContext;
     private AlertDialog mAlertDialog;
     private Switch mSwitch;
     private boolean mDialogClicked = false;
     private static MyHandler mHandler;
+    private SubscriptionManager mSubscriptionManager;
+    private String[] mCtMccMncs;
 
-    public static final String SETTING_PRE_NW_MODE_DEFAULT = "preferred_network_mode_default";
-    public static final String SETTING_PREF_NETWORK_BAND = "network_band_preferred";
-
-    private static final int LTE_FULL = 1;
-    private static final int LTE_TDD = 2;
-
-    private static final Uri URI_PHONE_FEATURE = Uri
-            .parse("content://com.qualcomm.qti.phonefeature.FEATURE_PROVIDER");
-
-    public Lte4GEnabler(Context context, Switch switch_) {
+    public Lte4GEnabler(Context context, Switch sw) {
         mContext = context;
-        mSwitch = switch_;
+        mSwitch = sw;
         mHandler = new MyHandler();
+        mSubscriptionManager = SubscriptionManager.from(mContext);
+        mCtMccMncs = context.getResources().getStringArray(R.array.ct_mcc_mnc_list);
     }
 
     public void resume() {
@@ -81,10 +86,10 @@ public class Lte4GEnabler {
         mSwitch.setOnCheckedChangeListener(null);
     }
 
-    public void setSwitch(Switch switch_) {
-        if (mSwitch == switch_)
+    public void setSwitch(Switch sw) {
+        if (mSwitch == sw)
             return;
-        mSwitch = switch_;
+        mSwitch = sw;
         setSwitchStatus();
         mSwitch.setOnCheckedChangeListener(mLte4GEnabledListener);
     }
@@ -92,9 +97,23 @@ public class Lte4GEnabler {
     // Adjust the switch component's availability
     // according to the "AirPlane" mode.
     private void setSwitchStatus() {
-        boolean isLTEMode = false;
-        int type = getPreferredNetworkType();
-        if (type == Phone.NT_MODE_TD_SCDMA_LTE_CDMA_EVDO_GSM_WCDMA
+        boolean isLTEMode = isDdsSubInLteMode();
+
+        if(mAlertDialog != null && mAlertDialog.isShowing()) {
+            isLTEMode = true;
+        }
+
+        mSwitch.setChecked(isLTEMode);
+        mSwitch.setEnabled((Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.AIRPLANE_MODE_ON, 0) == 0) && isThereSimReady());
+    }
+
+    private boolean isDdsSubInLteMode() {
+        boolean rlt = false;
+        int ddsSubId = mSubscriptionManager.getDefaultDataSubId();
+        int ddsSlotId = mSubscriptionManager.getSlotId(ddsSubId);
+        int type = getPreferredNetworkType(ddsSlotId);
+        if ((type == Phone.NT_MODE_TD_SCDMA_LTE_CDMA_EVDO_GSM_WCDMA
                 || type == Phone.NT_MODE_TD_SCDMA_GSM_WCDMA_LTE
                 || type == Phone.NT_MODE_TD_SCDMA_WCDMA_LTE
                 || type == Phone.NT_MODE_TD_SCDMA_GSM_LTE
@@ -103,23 +122,23 @@ public class Lte4GEnabler {
                 || type == Phone.NT_MODE_LTE_ONLY
                 || type == Phone.NT_MODE_LTE_CDMA_EVDO_GSM_WCDMA
                 || type == Phone.NT_MODE_LTE_GSM_WCDMA
-                || type == Phone.NT_MODE_LTE_CDMA_AND_EVDO
-        // || type == Phone.NT_MODE_LTE_CDMA_EVDO_GSM // compile failed.
-        ) {
-            isLTEMode = true;
-        } else {
-            isLTEMode = false;
+                || type == Phone.NT_MODE_LTE_CDMA_AND_EVDO)
+                && TelephonyManager.getDefault().getSimState(ddsSlotId)
+                == TelephonyManager.SIM_STATE_READY) {
+            rlt = true;
         }
+        Log.i(TAG, "isDdsSubInLteMode: " + rlt);
+        return rlt;
+    }
 
-        if(mAlertDialog != null && mAlertDialog.isShowing()) {
-            isLTEMode = true;
+    public boolean isThereSimReady() {
+        boolean rlt = false;
+        for (int i = 0; i < sPhoneCount; i++) {
+            rlt |= TelephonyManager.getDefault().getSimState(i) ==
+                TelephonyManager.SIM_STATE_READY;
         }
-
-        mSwitch.setChecked(isLTEMode);
-        int simState = TelephonyManager.getDefault().getSimState(PhoneConstants.SUB1);
-        mSwitch.setEnabled((Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.AIRPLANE_MODE_ON, 0) == 0)
-                && (simState == TelephonyManager.SIM_STATE_READY));
+        Log.i(TAG, "isThereSimReady: " + rlt);
+        return rlt;
     }
 
     private void promptUser() {
@@ -169,7 +188,7 @@ public class Lte4GEnabler {
         public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
             // TODO Auto-generated method stub
             // Only prompt user when enable 4G
-            if (mSwitch.isChecked()) {
+            if (arg1) {
                 promptUser();
             } else {
                 setPrefNetwork();
@@ -180,34 +199,76 @@ public class Lte4GEnabler {
     private void setPrefNetwork() {
         // Disable it, enable it after getting reponse
         mSwitch.setEnabled(false);
-        int networkType = mSwitch.isChecked() ? Phone.NT_MODE_LTE_CDMA_EVDO_GSM_WCDMA
-                : Phone.NT_MODE_GLOBAL;
-
-        if (mSwitch.isChecked() && isPrefTDDDataOnly(PhoneConstants.SUB1)) {
-            TelephonyManager.putIntAtIndex(mContext.getContentResolver(),
-                    SETTING_PRE_NW_MODE_DEFAULT, PhoneConstants.SUB1, networkType);
-
-            setPrefNetwork(PhoneConstants.SUB1, Phone.NT_MODE_LTE_ONLY, LTE_TDD);
+        Log.i(TAG, "isChecked: " + mSwitch.isChecked());
+        if (mSwitch.isChecked()) {
+            // Only raise dds sub up to LTE mode pref,
+            // because PhoneFeatures may change other sub to GSM only.
+            int ddsSlotId = mSubscriptionManager.getSlotId(mSubscriptionManager.
+                    getDefaultDataSubId());
+            int networkType = getProperNwMode(ddsSlotId);
+            storeNwModeIntoDb(ddsSlotId, networkType);
+            if (isPrefTDDDataOnly(ddsSlotId)) {
+                setPrefNetwork(ddsSlotId, Phone.NT_MODE_LTE_ONLY, LTE_TDD);
+            } else {
+                setPrefNetwork(ddsSlotId, networkType);
+            }
         } else {
-            // both dsds and sss use this this interface
-            setPrefNetwork(PhoneConstants.SUB1, networkType);
+            for (int i = 0; i < sPhoneCount; i++) {
+                int networkType = getProperNwMode(i);
+                storeNwModeIntoDb(i, networkType);
+                setPrefNetwork(i, networkType);
+            }
         }
     }
 
-    private void setPrefNetwork(int sub, int network) {
+    private boolean isCtCard(int phoneId) {
+        int[] subId = mSubscriptionManager.getSubId(phoneId);
+        SubscriptionInfo subInfo = mSubscriptionManager.getActiveSubscriptionInfo(subId[0]);
+        if (subInfo != null && mCtMccMncs != null) {
+            String mccMnc = String.format("%03d%02d", subInfo.getMcc(), subInfo.getMnc());
+            Log.i(TAG, "slot: " + phoneId + " mccMnc: " + mccMnc);
+            for (String ctMccMnc : mCtMccMncs) {
+                if (mccMnc.equals(ctMccMnc)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private int getProperNwMode(int phoneId) {
+        boolean isCtCardPresent = isCtCard(phoneId);
+        int lteNwMode = isCtCardPresent ? Phone.NT_MODE_LTE_CDMA_EVDO_GSM_WCDMA :
+                Phone.NT_MODE_TD_SCDMA_GSM_WCDMA_LTE;
+        int nwMode = isCtCardPresent ? Phone.NT_MODE_GLOBAL :
+                Phone.NT_MODE_TD_SCDMA_GSM_WCDMA;
+        return mSwitch.isChecked() ? lteNwMode : nwMode;
+    }
+
+    private void storeNwModeIntoDb(int phoneId, int nwMode) {
+        TelephonyManager.putIntAtIndex(mContext.getContentResolver(),
+                SETTING_PRE_NW_MODE_DEFAULT, phoneId, nwMode);
+        int[] subId = mSubscriptionManager.getSubId(phoneId);
+        if (subId != null) {
+            Settings.Global.putInt(mContext.getContentResolver(),
+            Settings.Global.PREFERRED_NETWORK_MODE + subId[0], nwMode);
+        }
+    }
+
+    private void setPrefNetwork(int phoneId, int network) {
         Messenger msger = new Messenger(mHandler);
         final Message msg = mHandler.obtainMessage(
                 MyHandler.MESSAGE_SET_PREFERRED_NETWORK_TYPE);
         msg.replyTo = msger;
 
         Bundle extras = new Bundle();
-        extras.putInt(PhoneConstants.SLOT_KEY, sub);
+        extras.putInt(PhoneConstants.SLOT_KEY, phoneId);
         extras.putInt("network", network);
         extras.putParcelable("callback", msg);
         callBinder("set_pref_network", extras);
     }
 
-    public void setPrefNetwork(int sub, int network, int band) {
+    public void setPrefNetwork(int phoneId, int network, int band) {
         final Message msg = mHandler.obtainMessage(
                 MyHandler.MESSAGE_SET_PREFERRED_NETWORK_TYPE);
         if (msg != null) {
@@ -215,7 +276,7 @@ public class Lte4GEnabler {
         }
 
         Bundle params = new Bundle();
-        params.putInt(PhoneConstants.SLOT_KEY, sub);
+        params.putInt(PhoneConstants.SLOT_KEY, phoneId);
         params.putInt("network", network);
         params.putInt("band", band);
         params.putParcelable("callback", msg);
@@ -229,16 +290,21 @@ public class Lte4GEnabler {
         return mContext.getContentResolver().call(URI_PHONE_FEATURE, method, null, extras);
     }
 
-    private int getPreferredNetworkType() {
+    private int getPreferredNetworkType(int phoneId) {
         int settingsNetworkMode = Phone.PREFERRED_NT_MODE;
-
-        try {
-            settingsNetworkMode = TelephonyManager.getIntAtIndex(
-                    mContext.getContentResolver(),
-                    Settings.Global.PREFERRED_NETWORK_MODE,
-                    PhoneConstants.SUB1);
-        } catch (SettingNotFoundException snfe) {
-            Log.e(TAG, "getPreferredNetworkType: Could not find PREFERRED_NETWORK_MODE!!!");
+        int[] subId = mSubscriptionManager.getSubId(phoneId);
+        if (subId != null && subId.length > 0) {
+            settingsNetworkMode = Settings.Global.getInt(mContext.getContentResolver(),
+                    Settings.Global.PREFERRED_NETWORK_MODE + subId[0],
+                    Phone.PREFERRED_NT_MODE);
+        } else {
+            try {
+                settingsNetworkMode = TelephonyManager.getIntAtIndex(
+                        mContext.getContentResolver(),
+                        Settings.Global.PREFERRED_NETWORK_MODE, phoneId);
+            } catch (SettingNotFoundException snfe) {
+                Log.e(TAG, "getPreferredNetworkType: Could not find PREFERRED_NETWORK_MODE!!!");
+            }
         }
 
         Log.i(TAG, "get preferred network type=" + settingsNetworkMode);
@@ -258,9 +324,9 @@ public class Lte4GEnabler {
         }
 
         private void handleSetPreferredNetworkTypeResponse(Message msg) {
-            int type = getPreferredNetworkType();
             // set it as true after mode processing
             mDialogClicked = false;
+            Log.i(TAG, "handleSetPreferredNetworkTypeResponse");
             setSwitchStatus();
         }
     }
