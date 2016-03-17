@@ -108,6 +108,25 @@
                             android:entries="@array/wifi_eap_method" />
                 </LinearLayout>
 
+                <LinearLayout android:id="@+id/l_method_carrier_function"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        style="@style/wifi_item" >
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/wifi_item_label"
+                            android:text="@string/wifi_eap_method" />
+
+                    <Spinner android:id="@+id/method_carrier_function"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            style="@style/wifi_item_content"
+                            android:prompt="@string/wifi_eap_method"
+                            android:entries="@array/wifi_eap_method_carrier_function" />
+                </LinearLayout>
+
                 <LinearLayout android:id="@+id/l_sim_card"
                              android:layout_width="match_parent"
                              android:layout_height="wrap_content"
@@ -187,6 +206,7 @@
                         android:visibility="gone"
                         style="@style/wifi_item" >
                     <TextView
+                            android:id="@+id/text_view_identity"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             style="@style/wifi_item_label"

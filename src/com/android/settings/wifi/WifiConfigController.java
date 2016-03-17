@@ -91,15 +91,6 @@ public class WifiConfigController implements TextWatcher,
     public static final int PROXY_STATIC = 1;
     public static final int PROXY_PAC = 2;
 
-    /* These values come from "wifi_eap_method" resource array */
-    public static final int WIFI_EAP_METHOD_PEAP = 0;
-    public static final int WIFI_EAP_METHOD_TLS  = 1;
-    public static final int WIFI_EAP_METHOD_TTLS = 2;
-    public static final int WIFI_EAP_METHOD_PWD  = 3;
-    public static final int WIFI_EAP_METHOD_SIM  = 4;
-    public static final int WIFI_EAP_METHOD_AKA  = 5;
-    public static final int WIFI_EAP_METHOD_AKA_PRIME  = 6;
-
     /* These values come from "wifi_peap_phase2_entries" resource array */
     public static final int WIFI_PEAP_PHASE2_NONE 	    = 0;
     public static final int WIFI_PEAP_PHASE2_MSCHAPV2 	= 1;
@@ -130,6 +121,7 @@ public class WifiConfigController implements TextWatcher,
     private Spinner mEapUserCertSpinner;
     private TextView mEapIdentityView;
     private TextView mEapAnonymousView;
+    private String mSsidName;
 
     private Spinner mIpSettingsSpinner;
     private TextView mIpAddressView;
@@ -179,6 +171,7 @@ public class WifiConfigController implements TextWatcher,
         mTelephonyManager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
         mSimDisplayNames = new ArrayList<String>();
         mLevels = res.getStringArray(R.array.wifi_signal);
+        mSsidName = res.getString(R.string.wifi_eap_carrier_function_name);
         PHASE2_PEAP_ADAPTER = new ArrayAdapter<String>(
             mContext, android.R.layout.simple_spinner_item,
             res.getStringArray(R.array.wifi_peap_phase2_entries));
@@ -439,7 +432,13 @@ public class WifiConfigController implements TextWatcher,
                 config.allowedKeyManagement.set(KeyMgmt.WPA_EAP);
                 config.allowedKeyManagement.set(KeyMgmt.IEEE8021X);
                 config.enterpriseConfig = new WifiEnterpriseConfig();
-                int eapMethod = mEapMethodSpinner.getSelectedItemPosition();
+                int eapMethod;
+                if ((mContext.getResources().getBoolean(R.bool.config_eap_carrier_function))
+                     && (mAccessPoint.getSsid().toString().equals(mSsidName))) {
+                    eapMethod = eapMethodSelected();
+                } else {
+                    eapMethod = mEapMethodSpinner.getSelectedItemPosition();
+                }
                 int phase2Method = mPhase2Spinner.getSelectedItemPosition();
                 config.enterpriseConfig.setEapMethod(eapMethod);
                 switch (eapMethod) {
@@ -664,7 +663,11 @@ public class WifiConfigController implements TextWatcher,
 
         if (mEapMethodSpinner == null) {
             getSIMInfo();
-            mEapMethodSpinner = (Spinner) mView.findViewById(R.id.method);
+            if (isCarrierAPFunction()) {
+                mEapMethodSpinner = (Spinner) mView.findViewById(R.id.method_carrier_function);
+            } else {
+                mEapMethodSpinner = (Spinner) mView.findViewById(R.id.method);
+            }
             mEapMethodSpinner.setOnItemSelectedListener(this);
             if (Utils.isWifiOnly(mContext) || !mContext.getResources().getBoolean(
                     com.android.internal.R.bool.config_eap_sim_based_auth_supported)) {
@@ -725,10 +728,18 @@ public class WifiConfigController implements TextWatcher,
                 mEapIdentityView.setText(enterpriseConfig.getIdentity());
                 mEapAnonymousView.setText(enterpriseConfig.getAnonymousIdentity());
             } else {
-                showEapFieldsByMethod(mEapMethodSpinner.getSelectedItemPosition());
+                if (isCarrierAPFunction()) {
+                    showEapFieldsByMethod(eapMethodSelected());
+                } else {
+                    showEapFieldsByMethod(mEapMethodSpinner.getSelectedItemPosition());
+                }
             }
         } else {
-            showEapFieldsByMethod(mEapMethodSpinner.getSelectedItemPosition());
+            if (isCarrierAPFunction()) {
+                showEapFieldsByMethod(eapMethodSelected());
+            } else {
+                showEapFieldsByMethod(mEapMethodSpinner.getSelectedItemPosition());
+            }
         }
     }
 
@@ -755,7 +766,11 @@ public class WifiConfigController implements TextWatcher,
      */
     private void showEapFieldsByMethod(int eapMethod) {
         // Common defaults
-        mView.findViewById(R.id.l_method).setVisibility(View.VISIBLE);
+        if (isCarrierAPFunction()) {
+            mView.findViewById(R.id.l_method_carrier_function).setVisibility(View.VISIBLE);
+        } else {
+            mView.findViewById(R.id.l_method).setVisibility(View.VISIBLE);
+        }
         mView.findViewById(R.id.l_identity).setVisibility(View.VISIBLE);
 
         // Defaults for most of the EAP methods and over-riden by
@@ -766,32 +781,41 @@ public class WifiConfigController implements TextWatcher,
 
         Context context = mConfigUi.getContext();
         switch (eapMethod) {
-            case WIFI_EAP_METHOD_PWD:
+            case Eap.PWD:
                 setPhase2Invisible();
                 setCaCertInvisible();
                 setAnonymousIdentInvisible();
                 setUserCertInvisible();
                 setSimCardInvisible();
                 break;
-            case WIFI_EAP_METHOD_TLS:
+            case Eap.TLS:
                 mView.findViewById(R.id.l_user_cert).setVisibility(View.VISIBLE);
                 setPhase2Invisible();
                 setAnonymousIdentInvisible();
                 setPasswordInvisible();
                 setSimCardInvisible();
                 break;
-            case WIFI_EAP_METHOD_PEAP:
+            case Eap.PEAP:
                 // Reset adapter if needed
                 if (mPhase2Adapter != PHASE2_PEAP_ADAPTER) {
                     mPhase2Adapter = PHASE2_PEAP_ADAPTER;
                     mPhase2Spinner.setAdapter(mPhase2Adapter);
                 }
-                mView.findViewById(R.id.l_phase2).setVisibility(View.VISIBLE);
-                mView.findViewById(R.id.l_anonymous).setVisibility(View.VISIBLE);
+                if (isCarrierAPFunction()) {
+                    TextView mIdentityView = (TextView) mView.findViewById(R.id.text_view_identity);
+                    mIdentityView.setText(mContext.getResources().getString
+                        (R.string.wifi_eap_identity_carrier_function));
+                    setPhase2Invisible();
+                    setCaCertInvisible();
+                    setAnonymousIdentInvisible();
+                } else {
+                    mView.findViewById(R.id.l_phase2).setVisibility(View.VISIBLE);
+                    mView.findViewById(R.id.l_anonymous).setVisibility(View.VISIBLE);
+                }
                 setUserCertInvisible();
                 setSimCardInvisible();
                 break;
-            case WIFI_EAP_METHOD_TTLS:
+            case Eap.TTLS:
                 // Reset adapter if needed
                 if (mPhase2Adapter != PHASE2_FULL_ADAPTER) {
                     mPhase2Adapter = PHASE2_FULL_ADAPTER;
@@ -802,9 +826,9 @@ public class WifiConfigController implements TextWatcher,
                 setUserCertInvisible();
                 setSimCardInvisible();
                 break;
-            case WIFI_EAP_METHOD_SIM:
-            case WIFI_EAP_METHOD_AKA:
-            case WIFI_EAP_METHOD_AKA_PRIME:
+            case Eap.SIM:
+            case Eap.AKA:
+            case Eap.AKA_PRIME:
                 WifiConfiguration config = null;
                 if (mAccessPoint != null) {
                     config = mAccessPoint.getConfig();
@@ -1087,7 +1111,6 @@ public class WifiConfigController implements TextWatcher,
     }
 
     private void getSIMInfo() {
-        int numOfSims;
         String displayname;
         mSubscriptionManager = SubscriptionManager.from(mContext);
         for(int i = 0; i < mTelephonyManager.getSimCount(); i++) {
@@ -1099,6 +1122,33 @@ public class WifiConfigController implements TextWatcher,
                 displayname = mContext.getString(R.string.sim_editor_title, i + 1);
             }
              mSimDisplayNames.add(displayname);
+        }
+    }
+
+    private boolean isCarrierAPFunction() {
+        return ((mContext.getResources().getBoolean(R.bool.config_eap_carrier_function))
+             && (mAccessPoint.getSsid().toString().equals(mSsidName))
+             && (mAccessPoint.getSecurity() == AccessPoint.SECURITY_EAP));
+    }
+
+    private int eapMethodSelected() {
+        String eapMethodStr = mEapMethodSpinner.getSelectedItem().toString();
+        if (eapMethodStr.equals("PEAP")) {
+            return Eap.PEAP;
+        } else if (eapMethodStr.equals("TLS")) {
+            return Eap.TLS;
+        } else if (eapMethodStr.equals("TTLS")) {
+            return Eap.TTLS;
+        } else if (eapMethodStr.equals("PWD")) {
+            return Eap.PWD;
+        } else if (eapMethodStr.equals("SIM")) {
+            return Eap.SIM;
+        } else if (eapMethodStr.equals("AKA")) {
+            return Eap.AKA;
+        } else if (eapMethodStr.equals("AKA'")) {
+            return Eap.AKA_PRIME;
+        } else {
+            return Eap.NONE;
         }
     }
 }

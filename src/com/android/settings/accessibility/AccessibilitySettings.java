@@ -167,6 +167,7 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
                 public void onChange(boolean selfChange, Uri uri) {
                     loadInstalledServices();
                     updateServicesPreferences();
+                    updateSystemPreferences();
                 }
             };
 

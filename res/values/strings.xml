@@ -3325,6 +3325,10 @@
 
     <!-- [CHAR LIMIT=25] Text shown when there are no default Apps -->
     <string name="no_default_apps">No default Apps.</string>
+    <!-- [CHAR LIMIT=NONE] File protection title. If clicked, the user is taken to a screen for file protection functions -->
+    <string name="file_protection">File protection</string>
+    <!-- [CHAR LIMIT=NONE] File protection summary. If clicked, the user is taken to a screen for file protection functions -->
+    <string name="file_protection_summary">Encrypt files</string>
 
     <!-- [CHAR LIMIT=25] Services settings screen, setting option name for the user to go to the screen to view app storage use -->
     <string name="storageuse_settings_title">Storage use</string>
@@ -7310,4 +7314,8 @@ ation on your phone or online at https://my.t-mobile.com under Manage > Plans an
     <string name="lte_data_and_voice_calling_enabled">LTE data and Voice Calling (IMS/VoLTE) service enabled </string>
     <string name="lte_data_service_enabled">LTE data service enabled </string>
     <string name="app_ops_permiss_name">App network access</string>
+    <string name="add_operator_account_label">iTelcel</string>
+    <!-- Label for the EAP identity of the network by carrier function-->
+    <string name="wifi_eap_identity_carrier_function">Username</string>
+    <string name="wifi_eap_carrier_function_name">CMCC</string>
 </resources>
