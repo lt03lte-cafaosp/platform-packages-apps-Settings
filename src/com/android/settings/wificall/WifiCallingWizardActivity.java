@@ -85,6 +85,10 @@ public class WifiCallingWizardActivity extends Activity{
         finish();
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+    }
+
     public class QuestionFragment extends Fragment{
 
         @Override
