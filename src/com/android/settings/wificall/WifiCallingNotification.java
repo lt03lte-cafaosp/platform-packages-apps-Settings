@@ -71,6 +71,11 @@ public class WifiCallingNotification {
                 R.bool.config_regional_wifi_calling_notificaion_enable);
     }
 
+    public static boolean getWifiCallingErrNotifiEnable(Context context){
+        return context.getResources().getBoolean(
+                R.bool.config_regional_suppress_wifi_call_error_notification);
+    }
+
     public static void updateWFCStatusChange(Context context, boolean ready){
         if (!getWifiCallingNotifiEnable(context)) {
             return;
@@ -101,6 +106,10 @@ public class WifiCallingNotification {
 
     public static void updateRegistrationError(Context context, String extraMsg){
         if (!getWifiCallingNotifiEnable(context)) {
+            return;
+        }
+
+        if (getWifiCallingErrNotifiEnable(context)) {
             return;
         }
 

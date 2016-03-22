@@ -5898,7 +5898,7 @@
     <!-- Color label of Sim Editor.  [CHAR LIMIT=40] -->
     <string name="sim_editor_color">SIM color</string>
     <!-- Select label Title of Sim Editor.  [CHAR LIMIT=40] -->
-    <string name="sim_card_select_title">Select SIM card</string>
+    <string name="sim_card_select_title">Select SIM card for SMS</string>
     <!-- Orange label.  [CHAR LIMIT=40] -->
     <string name="color_orange">Orange</string>
     <!-- Purple label.  [CHAR LIMIT=40] -->
@@ -7318,4 +7318,5 @@ ation on your phone or online at https://my.t-mobile.com under Manage > Plans an
     <!-- Label for the EAP identity of the network by carrier function-->
     <string name="wifi_eap_identity_carrier_function">Username</string>
     <string name="wifi_eap_carrier_function_name">CMCC</string>
+    <string name="wifi_call_without_GBA_sim_error_message">Wi-Fi calling must be used on a GBA capable T-Mobile US SIM card is used.</string>
 </resources>
