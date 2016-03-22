@@ -44,6 +44,9 @@
     <!-- Config to enable/disable ppp number in APN editor -->
     <bool name="config_ppp_enabled">false</bool>
 
+    <!-- Config to show/hide Collect and diagnostics Preference UI option -->
+    <bool name="config_collect_diagnostics_enabled">false</bool>
+
     <!-- Config to show/hide Factory and carrier reset Preference UI option -->
     <bool name="config_factory_and_carrier_reset_enabled">false</bool>
 
