@@ -434,6 +434,8 @@ public class WifiConfigController implements TextWatcher,
                 config.enterpriseConfig = new WifiEnterpriseConfig();
                 int eapMethod;
                 if ((mContext.getResources().getBoolean(R.bool.config_eap_carrier_function))
+                     /* protect mAccessPoint.getSsid().toString() from happening exception */
+                     && (mAccessPoint != null)
                      && (mAccessPoint.getSsid().toString().equals(mSsidName))) {
                     eapMethod = eapMethodSelected();
                 } else {
@@ -1127,6 +1129,8 @@ public class WifiConfigController implements TextWatcher,
 
     private boolean isCarrierAPFunction() {
         return ((mContext.getResources().getBoolean(R.bool.config_eap_carrier_function))
+             /* protect mAccessPoint.getSsid().toString() from happening exception */
+             && (mAccessPoint != null)
              && (mAccessPoint.getSsid().toString().equals(mSsidName))
              && (mAccessPoint.getSecurity() == AccessPoint.SECURITY_EAP));
     }
