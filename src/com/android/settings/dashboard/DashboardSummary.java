@@ -190,10 +190,9 @@ public class DashboardSummary extends InstrumentedFragment {
                     tileView = new DashboardTileView(context,true);
                     mLte4GEnabler.setSwitch(tileView.getSwitch());
 
-                    int simState = TelephonyManager.getDefault().getSimState(PhoneConstants.SUB1);
                     boolean enabled = (Settings.System.getInt(context.getContentResolver(),
                             Settings.System.AIRPLANE_MODE_ON, 0) == 0)
-                            && (simState == TelephonyManager.SIM_STATE_READY);
+                            && mLte4GEnabler.isThereSimReady();
                     tileView.setEnabled(enabled);
                     tileView.getTitleTextView().setEnabled(enabled);
                     // update icons
