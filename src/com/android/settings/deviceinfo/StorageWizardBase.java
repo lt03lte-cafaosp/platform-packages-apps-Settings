@@ -18,6 +18,7 @@ package com.android.settings.deviceinfo;
 
 import android.annotation.LayoutRes;
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.storage.DiskInfo;
@@ -121,7 +122,12 @@ public abstract class StorageWizardBase extends Activity {
 
         // Our header assets already have padding baked in
         final View title = findViewById(R.id.suw_layout_title);
-        title.setPadding(title.getPaddingLeft(), 0, title.getPaddingRight(),
+        int paddingTop = 0;
+        Configuration mConfiguration = this.getResources().getConfiguration();
+        if(mConfiguration.orientation == Configuration.ORIENTATION_LANDSCAPE){
+            paddingTop = title.getPaddingTop() + 25;
+        }
+        title.setPadding(title.getPaddingLeft(), paddingTop, title.getPaddingRight(),
                 title.getPaddingBottom());
     }
 
