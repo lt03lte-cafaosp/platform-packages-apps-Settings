@@ -2518,6 +2518,8 @@
     <!-- Edit access point labels: PPP number -->
     <string name="apn_ppp_number">APN PPP phone number</string>
     <string name="ppp_number">ppp_number</string>
+    <!-- APN edited flag -->
+    <string name="edited">edited</string>
     <!-- Localized APN name -->
     <string name="localized_name">localized_name</string>
     <!-- apn names for carriers -->
