@@ -23,6 +23,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.MoveCallback;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.storage.DiskInfo;
@@ -36,6 +38,11 @@ public class StorageWizardMigrateProgress extends StorageWizardBase {
     private static final String ACTION_FINISH_WIZARD = "com.android.systemui.action.FINISH_WIZARD";
 
     private int mMoveId;
+    private int mStatus;
+
+    private static final int STATUS_FINISH = -100;
+    public static final String IS_MIGRATE_FINISH = "finish";
+    public static final String STORAGE_MIGRATE = "storage_migrate";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +67,25 @@ public class StorageWizardMigrateProgress extends StorageWizardBase {
         mCallback.onStatusChanged(mMoveId, getPackageManager().getMoveStatus(mMoveId), -1);
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mStatus != STATUS_FINISH) {
+            // data is being migrating
+            saveSharedPreferences(false);
+        }
+    }
+
     private final MoveCallback mCallback = new MoveCallback() {
         @Override
         public void onStatusChanged(int moveId, int status, long estMillis) {
             if (mMoveId != moveId) return;
 
+            mStatus = status;
+            if (status == STATUS_FINISH) {
+                // data migrated is finished
+                saveSharedPreferences(true);
+            }
             final Context context = StorageWizardMigrateProgress.this;
             if (PackageManager.isMoveStatusFinished(status)) {
                 Log.d(TAG, "Finished with status " + status);
@@ -91,4 +112,11 @@ public class StorageWizardMigrateProgress extends StorageWizardBase {
             }
         }
     };
+
+    public void saveSharedPreferences(boolean isMigrateFinish) {
+        SharedPreferences migrateSp = getSharedPreferences(STORAGE_MIGRATE, MODE_PRIVATE);
+        Editor migrateEd = migrateSp.edit();
+        migrateEd.putBoolean(IS_MIGRATE_FINISH, isMigrateFinish);
+        migrateEd.commit();
+    }
 }

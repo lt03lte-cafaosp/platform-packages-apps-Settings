@@ -53,8 +53,8 @@ public class WifiCallingNotification {
     private static WifiCallingNotification mWifiCallNoti;
     private static Builder mBuilder;
     private static int mCallState = TelephonyManager.CALL_STATE_IDLE;
-    private static final String PACKAGE_NAME = "com.android.phone";
-    private static final String ClASS_NAME = "com.android.phone.WifiCallingSettings";
+    private static final String PACKAGE_NAME = "com.android.settings";
+    private static final String ClASS_NAME = "com.android.settings.wificall.WifiCallingEnhancedSettings";
 
     private WifiCallingNotification(){
     }
@@ -69,6 +69,11 @@ public class WifiCallingNotification {
     public static boolean getWifiCallingNotifiEnable(Context context){
         return context.getResources().getBoolean(
                 R.bool.config_regional_wifi_calling_notificaion_enable);
+    }
+
+    public static boolean getWifiCallingErrNotifiEnable(Context context){
+        return context.getResources().getBoolean(
+                R.bool.config_regional_suppress_wifi_call_error_notification);
     }
 
     public static void updateWFCStatusChange(Context context, boolean ready){
@@ -101,6 +106,10 @@ public class WifiCallingNotification {
 
     public static void updateRegistrationError(Context context, String extraMsg){
         if (!getWifiCallingNotifiEnable(context)) {
+            return;
+        }
+
+        if (getWifiCallingErrNotifiEnable(context)) {
             return;
         }
 

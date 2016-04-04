@@ -1434,4 +1434,12 @@
         <item>1</item>
         <item>2</item>
     </string-array>
+
+    <!-- CT MCC-MNC-->
+    <string-array name="ct_mcc_mnc_list"  translatable="false">
+        <item>45507</item>
+        <item>46003</item>
+        <item>46011</item>
+        <item>46012</item>
+    </string-array>
 </resources>

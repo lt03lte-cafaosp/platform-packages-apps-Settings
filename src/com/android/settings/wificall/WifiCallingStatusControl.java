@@ -65,6 +65,7 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
     public static final String ACTION_WIFI_CALL_ERROR_CODE_EXTRA =
             "com.android.wificall.errorcode.extra";
     public static final String ACTION_IMS_STATE_CHANGE = "com.android.imscontection.DISCONNECTED";
+    private static final String ACTION_CAP_NO_SUPPORT = "android.intent.action.SHOW_CAP_NO_SUPPORT";
     public static final String ACTION_WIFI_REFRESH_RADIO = "com.android.wificall.REFRESH_RADIO";
     public static final int WIFI_CALLING_ROVE_IN_THRESHOD = -75;
     public static final String ACTION_WIFI_CALL_READY_STATUS_CHANGE = "com.android.wificall.READY";
@@ -90,6 +91,8 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
     private static int mWifiCallPreferred = -1;
     private static int mErrorCode = -1;
     private static boolean mIsE911CallOngoing = false;
+    private static boolean mImsGBAAvailable = false;
+    private static boolean mIsGuardTimerOngoing = false;
     private static PhoneStateListener mPhoneStateListener = new PhoneStateListener(){
         public void onCallStateChanged(int state, String incomingNumber) {
             WifiCallingNotification.updateWFCCallStateChange(mContext, state);
@@ -250,6 +253,9 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
                .getSystemService(Context.CONNECTIVITY_SERVICE);
         mWifiNetwork = connect.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         mWifiConnected = mWifiNetwork != null && mWifiNetwork.isConnected();
+        if (!mWifiConnected) {
+            WifiCallingNotification.cancelNotification(mContext);
+        }
         if (DEBUG) Log.d(TAG, "mWifiConnected = " + mWifiConnected);
     }
 
@@ -401,20 +407,35 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
                 mContext.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 1);
     }
 
+    private boolean isNetworkRoaming() {
+        TelephonyManager tm = (TelephonyManager)mContext.
+                getSystemService(Context.TELEPHONY_SERVICE);
+        return tm.isNetworkRoaming();
+    }
+
     private void updateRadioStatus() {
-        if (!mIsE911CallOngoing) {
+        if (mIsE911CallOngoing) {
             if (DEBUG) Log.d(TAG, "do not change radio during E911 call procedure");
             return;
         }
         boolean isRadioPowerOn = cellularNetworkIsAvailable();
         if (DEBUG) Log.d(TAG, "isRadioPowerOn = " + isRadioPowerOn);
-        if (mWifiCallPreferred == WifiCallingPreference.WIFI_ONLY && mWifiCallTurnOn) {
-            if (isRadioPowerOn && !isAirplaneModeOn() && cellularNetworkIsAvailable()) {
+        if (mWifiCallPreferred == WifiCallingPreference.WIFI_ONLY
+                && mWifiTurnOn && mWifiCallTurnOn) {
+            if (isRadioPowerOn && !isAirplaneModeOn() && mImsRegisted) {
+                if (getTelephonyManager() != null) {
+                    getTelephonyManager().setRadioPower(false);
+                    if (DEBUG) Log.d(TAG, "updateRadioStatus, turn radio off");
+                }
+            }
+        } else if (mWifiCallPreferred == WifiCallingPreference.WIFI_PREFERRED
+            && isWfcOnlyInRoaming() && mWifiTurnOn && mWifiCallTurnOn) {
+            if (isRadioPowerOn && !isAirplaneModeOn() && isNetworkRoaming() && mImsRegisted) {
                 getTelephonyManager().setRadioPower(false);
-                if (DEBUG) Log.d(TAG, "updateRadioStatus, turn radio off");
+                if (DEBUG) Log.d(TAG, "updateRadioStatus for roaming, turn radio off");
             }
         } else {
-            if (!isRadioPowerOn && !cellularNetworkIsAvailable() && !isAirplaneModeOn()) {
+            if (!isRadioPowerOn && !isAirplaneModeOn()) {
                 getTelephonyManager().setRadioPower(true);
                 if (DEBUG) Log.d(TAG, "updateRadioStatus, turn radio on");
             }
@@ -469,15 +490,26 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
              handlePhoneStateChange(context,intent);
              return;
         } else if (action.equals(ACTION_WIFI_REFRESH_RADIO)) {
+             if (DEBUG) Log.d(TAG, "E911 guard timer expires");
              mIsE911CallOngoing = false;
              WifiCallingNotification.getIntance().updateWFCStatusChange(mContext, mWifiCallReady);
              updateRadioStatus();
+             mIsGuardTimerOngoing = false;
              return;
         }
         boolean WifiCallStatusChanged = false;
         if (!WifiCallingNotification.getWifiCallingNotifiEnable(context)) {
             if (DEBUG) Log.d(TAG, "getIntent : " + intent.getAction() + " flag : false");
             return;
+        }
+        if (ACTION_CAP_NO_SUPPORT.equals(action)) {
+            mImsGBAAvailable = intent.getBooleanExtra(
+                "android.intent.action.SHOW_CAP_NO_SUPPORT.GBAAvailable", false);
+            return;
+        }
+        if ("android.intent.action.SERVICE_STATE".equals(action)) {
+            if (!isWfcOnlyInRoaming() || !isNetworkRoaming())
+                return;
         }
         mContext = context;
         if (Intent.ACTION_BOOT_COMPLETED.equals(action) && isFirstBoot()) {
@@ -544,14 +576,32 @@ public class WifiCallingStatusControl extends BroadcastReceiver {
                 WifiCallingNotification.cancelNotification(mContext);
             }
         } else if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-            if (!mIsE911CallOngoing) {
+            if (!mIsE911CallOngoing && !mIsGuardTimerOngoing) {
                  AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
                  long retryAt = System.currentTimeMillis() + REFRESH_RADIO_TIMER_AFTER_E911;
                  Intent refreshRadioIntent = new Intent(ACTION_WIFI_REFRESH_RADIO);
                  PendingIntent tempIntent =
                          PendingIntent.getBroadcast(ctx, 0, refreshRadioIntent, 0);
                  am.setExact(AlarmManager.RTC, retryAt, tempIntent);
+                 mIsGuardTimerOngoing = true;
             }
         }
+    }
+
+    public static boolean isWfcOnGBASim(Context context) {
+        return context.getResources().getBoolean(
+            R.bool.config_regional_wifi_call_on_gba_sim);
+    }
+
+    public static boolean isImsGBAAvailable() {
+        return mImsGBAAvailable;
+    }
+
+    private static int mWifiOnlyInRoaming = -1;
+    private boolean isWfcOnlyInRoaming() {
+        if (mWifiOnlyInRoaming == -1)
+            mWifiOnlyInRoaming = mContext.getResources().getBoolean(
+                R.bool.config_regional_wifi_call_only_in_roaming)?1:0;
+        return (mWifiOnlyInRoaming == 1);
     }
 }
