@@ -34,6 +34,12 @@
     <dimen name="data_usage_chart_height">228dip</dimen>
     <dimen name="data_usage_chart_optimalWidth">440dip</dimen>
 
+    <!-- DataUsage ActionBar -->
+    <dimen name="datausage_landscape_title_textsize">14px</dimen>
+    <dimen name="datausage_portrait_title_textsize">20px</dimen>
+    <dimen name="datausage_landscape_actionbar_height">46px</dimen>
+    <dimen name="datausage_portrait_actionbar_height">56px</dimen>
+
     <dimen name="volume_seekbar_side_margin">8dip</dimen>
 
     <dimen name="crypt_clock_size">100sp</dimen>
