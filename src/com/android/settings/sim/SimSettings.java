@@ -210,15 +210,30 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         String simOperator = TelephonyManager.getDefault().getSimOperatorNumericForPhone(slotIdx);
         boolean isCTCard = false;
         if(!TextUtils.isEmpty(simOperator)) {
-            if (simOperator.equals("46003") || simOperator.equals("46011") ||
-                    simOperator.equals("46012") || simOperator.equals("20404") ||
-                    simOperator.equals("45502") || simOperator.equals("45507") ||
-                    simOperator.equals("45403") || simOperator.equals("45404")) {
-                isCTCard = true;
+            for(String ctMccMnc : getResources().getStringArray(R.array.ct_mcc_mnc_list)) {
+                if(simOperator.equals(ctMccMnc)) {
+                    isCTCard = true;
+                    break;
+                }
             }
         }
         log(" simOperator " + simOperator + ", isCTCard " + isCTCard);
         return isCTCard;
+    }
+
+    private boolean isCMCardForSImSlotIndex(int slotIdx) {
+        String simOperator = TelephonyManager.getDefault().getSimOperatorNumericForPhone(slotIdx);
+        boolean isCMCard = false;
+        if(!TextUtils.isEmpty(simOperator)) {
+            for(String cmMccMnc : getResources().getStringArray(R.array.cm_mcc_mnc_list)) {
+                if(simOperator.equals(cmMccMnc)) {
+                    isCMCard = true;
+                    break;
+                }
+            }
+        }
+        log(" simOperator " + simOperator + ", isCMCard " + isCMCard);
+        return isCMCard;
     }
 
     private void alertRestrictCTCardDialog() {
@@ -302,6 +317,17 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         // Enable data preference in msim mode and call state idle
         simPref.setEnabled((mSelectableSubInfos.size() > 1) && !disableDds()
                 && callStateIdle && !ecbMode);
+
+        // disable DDS when find CMCC+CT
+        if(mContext.getResources().getBoolean(R.bool.config_dds_disable)) {
+            if (mSelectableSubInfos.size() > 1) {
+                boolean isDdsDis = (isCTCardForSimSlotIndex(PhoneConstants.SUB1) &&
+                                   isCMCardForSImSlotIndex(PhoneConstants.SUB2)) ||
+                                   (isCMCardForSImSlotIndex(PhoneConstants.SUB1) &&
+                                   isCTCardForSimSlotIndex(PhoneConstants.SUB2));
+                simPref.setEnabled(!isDdsDis);
+            }
+        }
     }
 
     private void updateCallValues() {
