@@ -635,6 +635,10 @@ public class ApnEditor extends PreferenceActivity
             values.put(getResources().getString(R.string.ppp_number),pppNumber);
         }
 
+        if (mNewApn) {
+            values.put(getResources().getString(R.string.edited),1);
+        }
+
         if (mCurMnc != null && mCurMcc != null) {
             if (mCurMnc.equals(mnc) && mCurMcc.equals(mcc) &&
                     mSubId == SubscriptionManager.getDefaultDataSubId()) {
