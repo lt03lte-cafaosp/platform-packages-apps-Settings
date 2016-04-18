@@ -43,6 +43,7 @@ import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.provider.SearchIndexableResource;
 import android.provider.Settings;
+import android.telephony.PhoneStateListener;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
@@ -98,6 +99,20 @@ public class WirelessSettings extends SettingsPreferenceFragment
     private static final String SAVED_MANAGE_MOBILE_PLAN_MSG = "mManageMobilePlanMessage";
 
     private AppListPreference mSmsApplicationPreference;
+
+    private final PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
+        /*
+         * Enable/disable the 'Wifi Calling Settings' when in/out of a call.
+         */
+        @Override
+        public void onCallStateChanged(int state, String incomingNumber) {
+            log("PhoneStateListener.onCallStateChanged: state=" + state);
+            Preference pref = getPreferenceScreen().findPreference(KEY_WIFI_CALLING_SETTINGS);
+            if (pref != null) {
+                pref.setEnabled(state == TelephonyManager.CALL_STATE_IDLE);
+            }
+        }
+    };
 
     /**
      * Invoked on each preference click in this hierarchy, overrides
@@ -460,6 +475,10 @@ public class WirelessSettings extends SettingsPreferenceFragment
         if (mNsdEnabler != null) {
             mNsdEnabler.resume();
         }
+        Preference pref = getPreferenceScreen().findPreference(KEY_WIFI_CALLING_SETTINGS);
+        if (pref != null) {
+            mTm.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        }
     }
 
     @Override
@@ -481,6 +500,10 @@ public class WirelessSettings extends SettingsPreferenceFragment
         }
         if (mNsdEnabler != null) {
             mNsdEnabler.pause();
+        }
+        Preference pref = getPreferenceScreen().findPreference(KEY_WIFI_CALLING_SETTINGS);
+        if (pref != null) {
+            mTm.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
         }
     }
 
