@@ -265,6 +265,8 @@ public class ConfirmLockPassword extends ConfirmDeviceCredentialBaseActivity {
             if (mBlockImm) return;
             mPasswordEntry.setEnabled(true);
             mPasswordEntryInputDisabler.setInputEnabled(true);
+            mPasswordEntry.setInputType(mIsAlpha ? mPasswordEntry.getInputType()
+                    : (InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD));
             if (shouldAutoShowSoftKeyboard()) {
                 mImm.showSoftInput(mPasswordEntry, InputMethodManager.SHOW_IMPLICIT);
             }
