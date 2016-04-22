@@ -16,6 +16,7 @@
 
 package com.android.settings.dashboard;
 
+import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -47,6 +48,7 @@ import java.util.HashMap;
 
 public class SearchResultsSummary extends InstrumentedFragment {
 
+    private static final String EACH_CONTENT = " AND data_title <> ";
     private static final String LOG_TAG = "SearchResultsSummary";
 
     private static final String EMPTY_QUERY = "";
@@ -77,6 +79,19 @@ public class SearchResultsSummary extends InstrumentedFragment {
     private class UpdateSearchResultsTask extends AsyncTask<String, Void, Cursor> {
         @Override
         protected Cursor doInBackground(String... params) {
+            int userId = ActivityManager.getCurrentUser();
+            if (userId != 0) {
+                String[] filterItems = getActivity().getResources()
+                        .getStringArray(R.array.filter_title_item);
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < filterItems.length; i++) {
+                    sb.append(EACH_CONTENT);
+                    sb.append("'"+filterItems[i]+"'");
+                }
+                String filterItemsContent = sb.toString();
+                return Index.getInstance(getActivity())
+                        .searchForOtherUsers(params[0], filterItemsContent);
+            }
             return Index.getInstance(getActivity()).search(params[0]);
         }
 
