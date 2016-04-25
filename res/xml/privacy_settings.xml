@@ -71,4 +71,16 @@
             android:targetClass="com.qualcomm.qti.carrierconfigure.ConfigurationActivity" />
     </PreferenceScreen>
 
+    <!-- Collect Diagnostics -->
+    <PreferenceScreen
+        android:key="collect_diagnostics"
+        android:title="@string/collect_diagnostics_title"
+        android:summary="@string/collect_diagnostics_summary">
+        <intent
+            android:action="com.metrics.tmobile.SUMMARY"
+            android:targetPackage="com.tmobile.pr.mytmobile"
+            android:targetClass="com.tmobile.pr.mytmobile.iqtoggle.ui.OptInSummary" />
+    </PreferenceScreen>
+
+
 </PreferenceScreen>

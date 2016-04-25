@@ -1420,6 +1420,8 @@
         <item>46001</item>
         <item>46003</item>
         <item>46011</item>
+        <item>46012</item>
+        <item>45502</item>
         <item>45507</item>
     </string-array>
 
@@ -1431,6 +1433,7 @@
         <item>45507</item>
         <item>46003</item>
         <item>46011</item>
+        <item>46012</item>
     </string-array>
 
     <string-array name="cellcular2wifi_entries">
@@ -1451,5 +1454,16 @@
         <item>46003</item>
         <item>46011</item>
         <item>46012</item>
+        <item>20404</item>
+        <item>45502</item>
+        <item>45403</item>
+        <item>45404</item>
+    </string-array>
+
+    <!-- CM MCC-MNC-->
+    <string-array name="cm_mcc_mnc_list"  translatable="false">
+        <item>46000</item>
+        <item>46002</item>
+        <item>46007</item>
     </string-array>
 </resources>
