@@ -53,12 +53,15 @@ import com.android.internal.telephony.TelephonyProperties;
 import com.android.settings.nfc.NfcEnabler;
 import com.android.settings.search.BaseSearchIndexProvider;
 import com.android.settings.search.Indexable;
-import com.android.settings.wificall.WifiCallSwitchPreference;
-import com.android.settings.wificall.WifiCallingStatusControl;
 
+import dalvik.system.DexClassLoader;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 
 public class WirelessSettings extends SettingsPreferenceFragment implements Indexable {
     private static final String TAG = "WirelessSettings";
@@ -76,7 +79,13 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
     private static final String KEY_TOGGLE_NSD = "toggle_nsd"; //network service discovery
     private static final String KEY_CELL_BROADCAST_SETTINGS = "cell_broadcast_settings";
     private static final String KEY_WFC_SETTINGS = "wifi_calling_settings";
-    private static final String KEY_WIFI_CALL_SETTINGS = "wifi_call_enhanced_settings";
+    //begin for enhanced wfc setting with wfc state and error code
+    private static final String EXT_SEETING_APK_FILE = "/system/app/ExtSettings/ExtSettings.apk";
+    private static final String WIRELESS_PLUGIN_CLASS =
+            "com.qualcomm.qti.extsettings.WirelessSettingPlugin";
+    private static final String WIRELESS_PLUGIN_METHOD_ONSTART = "onStart";
+    private static final String WIRELESS_PLUGIN_METHOD_ONSTOP = "onStop";
+    //end  for enhanced wfc setting with wfc state and error code
 
     public static final String EXIT_ECM_RESULT = "exit_ecm_result";
     public static final int REQUEST_CODE_EXIT_ECM = 1;
@@ -101,6 +110,7 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
     private SwitchPreference mVoLtePreference;
     private boolean mLteEnabled = false;
     private boolean mWifiCallSettingsEnabled = false;
+    private Object mPlugin = null;
 
     /**
      * Invoked on each preference click in this hierarchy, overrides
@@ -377,7 +387,8 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
             getPreferenceScreen().removePreference(mVoLtePreference);
         }
         mWifiCallSettingsEnabled =
-                getActivity().getResources().getBoolean(R.bool.wifi_call_enhanced_setting);
+                getActivity().getResources().getBoolean(R.bool.wifi_call_enhanced_setting)
+                && ImsManager.isWfcEnabledByPlatform(getActivity());
         if (mWifiCallSettingsEnabled) {
             updateEnhancedWFCSettings();
         }
@@ -398,7 +409,6 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
         if (mWifiCallSettingsEnabled) {
             registerWFCListener();
         } else {
-            removePreference(KEY_WIFI_CALL_SETTINGS);
             // update WFC setting
             final Context context = getActivity();
             if (ImsManager.isWfcEnabledByPlatform(context)) {
@@ -555,44 +565,60 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
         };
 
     private void updateEnhancedWFCSettings() {
-        Context ctx = getActivity();
-        boolean isSupportWFC = ImsManager.isWfcEnabledByPlatform(ctx);
-        if(DEBUG) Log.d(TAG, "updateEnhancedWFCSettings, isSupportWFC = " +
-                isSupportWFC);
-        if(!isSupportWFC &&
-            !(WifiCallingStatusControl.isWfcOnGBASim(ctx) &&
-            WifiCallingStatusControl.isImsGBAAvailable())) {
-            getPreferenceScreen().removePreference(
-                    findPreference(KEY_WIFI_CALL_SETTINGS));
-            getPreferenceScreen().removePreference(findPreference(KEY_WFC_SETTINGS));
-            if (WifiCallingStatusControl.isWfcOnGBASim(ctx))
-                Toast.makeText(ctx, R.string.wifi_call_without_GBA_sim_error_message,
-                        Toast.LENGTH_LONG).show();
-            return;
-        }
-        if (!mWifiCallSettingsEnabled) {
-            getPreferenceScreen().removePreference(
-                    findPreference(KEY_WIFI_CALL_SETTINGS));
-            mButtonWfc.setSummary(WifiCallingSettings.getWfcModeSummary(
-                    ctx, ImsManager.getWfcMode(ctx)));
-        } else {
-            getPreferenceScreen().removePreference(findPreference(KEY_WFC_SETTINGS));
+        try {
+            if (mPlugin == null) {
+                Object[] args = new Object[2];
+                args[0] = getActivity();
+                args[1] = getPreferenceScreen();
+                mPlugin = newPluginInstance(WIRELESS_PLUGIN_CLASS ,args);
+            }
+        } catch (Exception err) {
+            err.printStackTrace();
         }
     }
 
     private void registerWFCListener() {
-        Preference wifiCall = findPreference(KEY_WIFI_CALL_SETTINGS);
-        if (wifiCall != null && wifiCall instanceof WifiCallSwitchPreference) {
-            ((WifiCallSwitchPreference)wifiCall).setParentActivity(getActivity());
-            ((WifiCallSwitchPreference)wifiCall).registerReciever();
-            ((WifiCallSwitchPreference)wifiCall).getWifiCallingPreference();
+        try {
+            if(mPlugin != null) {
+                invokePluginMethod(mPlugin, WIRELESS_PLUGIN_METHOD_ONSTART, null);
+            }
+        } catch (Exception err) {
+            err.printStackTrace();
         }
     }
 
     private void unRegisterWFCListener() {
-        Preference wifiCall = findPreference(KEY_WIFI_CALL_SETTINGS);
-        if (wifiCall != null && wifiCall instanceof WifiCallSwitchPreference) {
-           ((WifiCallSwitchPreference)wifiCall).unRegisterReciever();
+        try {
+            if(mPlugin != null) {
+                invokePluginMethod(mPlugin, WIRELESS_PLUGIN_METHOD_ONSTOP, null);
+            }
+        } catch (Exception err) {
+            err.printStackTrace();
         }
+    }
+
+    private Object newPluginInstance(String className, Object[] args) throws Exception {
+        DexClassLoader dexClassLoader = new DexClassLoader(EXT_SEETING_APK_FILE,
+                getActivity().getFilesDir().getAbsolutePath(), null, getClass().getClassLoader());
+        Class newoneClass=dexClassLoader.loadClass(className);
+        Class[] argsClass = new Class[args.length];
+        argsClass[0] = Activity.class;
+        argsClass[1] = PreferenceScreen.class;
+        Constructor cons = newoneClass.getConstructor(argsClass);
+        return cons.newInstance(args);
+    }
+
+    private Object invokePluginMethod(Object owner, String methodName, Object[] args)
+            throws Exception {
+        Class ownerClass = owner.getClass();
+        Class[] argsClass = null;
+        if (args != null) {
+            argsClass = new Class[args.length];
+            for (int i = 0, j = args.length; i < j; i++) {
+                argsClass[i] = args[i].getClass();
+            }
+        }
+        Method method = ownerClass.getMethod(methodName,argsClass);
+        return method.invoke(owner, args);
     }
 }
