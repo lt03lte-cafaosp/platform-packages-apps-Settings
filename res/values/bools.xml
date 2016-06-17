@@ -119,6 +119,9 @@
     <!-- Whether to show carrier function in EAP method for adding network -->
     <bool name="config_eap_carrier_function">false</bool>
 
+    <!-- whether to show settings design -->
+    <bool name="config_settings_design">false</bool>
+
     <!-- Whether disable dds -->
     <bool name="config_dds_disable">false</bool>
 
