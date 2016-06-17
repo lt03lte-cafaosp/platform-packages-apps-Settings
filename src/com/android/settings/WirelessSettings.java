@@ -334,8 +334,13 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
         // Disable Tethering if it's not allowed or if it's a wifi-only device
         final ConnectivityManager cm =
                 (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        boolean isShowTethering = activity.getResources().getBoolean(R.bool.config_settings_design);
+        if (isShowTethering) {
+            removePreference(KEY_MOBILE_NETWORK_SETTINGS);
+        }
         if (isSecondaryUser || !cm.isTetheringSupported()
-                || mUm.hasUserRestriction(UserManager.DISALLOW_CONFIG_TETHERING)) {
+                || mUm.hasUserRestriction(UserManager.DISALLOW_CONFIG_TETHERING) 
+                || isShowTethering) {
             getPreferenceScreen().removePreference(findPreference(KEY_TETHER_SETTINGS));
         } else {
             Preference p = findPreference(KEY_TETHER_SETTINGS);
