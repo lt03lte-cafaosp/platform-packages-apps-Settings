@@ -146,6 +146,11 @@ public class NotificationSettings extends SettingsPreferenceFragment implements 
         addPreferencesFromResource(R.xml.notification_settings);
 
         final PreferenceCategory sound = (PreferenceCategory) findPreference(KEY_SOUND);
+        boolean isShowCastPreference = getResources().getBoolean(
+            R.bool.show_cast_preference_config);
+        if (isShowCastPreference) {
+            sound.removePreference(sound.findPreference(KEY_WIFI_DISPLAY));
+        }
         initVolumePreference(KEY_MEDIA_VOLUME, AudioManager.STREAM_MUSIC,
                 com.android.internal.R.drawable.ic_audio_media_mute);
         initVolumePreference(KEY_ALARM_VOLUME, AudioManager.STREAM_ALARM,

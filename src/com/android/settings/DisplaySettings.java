@@ -79,6 +79,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
     private static final String KEY_CAMERA_GESTURE = "camera_gesture";
     private static final String KEY_CAMERA_DOUBLE_TAP_POWER_GESTURE
             = "camera_double_tap_power_gesture";
+    private static final String KEY_WIFI_DISPLAY = "wifi_display";
 
     private static final int DLG_GLOBAL_CHANGE_WARNING = 1;
 
@@ -114,7 +115,11 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
         final ContentResolver resolver = activity.getContentResolver();
 
         addPreferencesFromResource(R.xml.display_settings);
-
+        boolean isShowCast = getResources().getBoolean(
+            R.bool.show_cast_preference_config);
+        if (isShowCast) {
+            removePreference(KEY_WIFI_DISPLAY);
+        }
         mScreenSaverPreference = findPreference(KEY_SCREEN_SAVER);
         if (mScreenSaverPreference != null
                 && getResources().getBoolean(
