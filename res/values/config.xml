@@ -122,4 +122,6 @@
     <bool name="config_regional_wifi_call_on_gba_sim">false</bool>
     <!-- wifi call only when phone in roaming network -->
     <bool name="config_regional_wifi_call_only_in_roaming">false</bool>
+    <!-- Tethering & Mobile HotSpots display summary on Tmoblie -->
+    <bool name="config_tethering_settings_display_summary_Tmobile">false</bool>
 </resources>
