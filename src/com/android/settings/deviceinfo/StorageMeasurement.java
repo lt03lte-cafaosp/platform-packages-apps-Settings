@@ -21,6 +21,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+
 import android.content.pm.ApplicationInfo;
 import android.content.pm.IPackageStatsObserver;
 import android.content.pm.PackageManager;
@@ -40,6 +43,7 @@ import android.util.Log;
 import android.util.SparseLongArray;
 
 import com.android.internal.app.IMediaContainerService;
+import com.android.settings.notification.OtherSoundSettings;
 import com.google.android.collect.Maps;
 import com.google.android.collect.Sets;
 
@@ -65,6 +69,23 @@ public class StorageMeasurement {
     static final boolean LOGV = LOCAL_LOGV && Log.isLoggable(TAG, Log.VERBOSE);
 
     private static final String DEFAULT_CONTAINER_PACKAGE = "com.android.defcontainer";
+
+    private static final int GET_G = 1024 * 1024 * 1024;
+    private static final double BASE_NUMBER_TWO = 2.0;
+    private static final int COUNT_G = 3;
+    private static final int BASE_NUMBER_MORE = 1024;
+    private static final int AT_MOST_COUNT = 10;
+    private static final int DIRECTORY_COUNT = 4;
+    private static final String PATH_DATA = "/data";
+    private static final String PATH_ROOT = "/";
+    private static final String PATH_CACHE = "/cache";
+    private static final String PATH_DEV = "/dev";
+    private static final String IS_FIRST_STORAGE = "isFirstStorage";
+    private static final String XML_STORAGE = "StorageMeasurement";
+    private static final String SYSTEM = "system";
+    private static final String DATA_SYSTEM = "dataSystem";
+    private static final String AVAILABLE = "available";
+    private static final String TOTAL = "total";
 
     public static final ComponentName DEFAULT_CONTAINER_COMPONENT = new ComponentName(
             DEFAULT_CONTAINER_PACKAGE, "com.android.defcontainer.DefaultContainerService");
@@ -98,6 +119,9 @@ public class StorageMeasurement {
     public static class MeasurementDetails {
         public long totalSize;
         public long availSize;
+
+        public long systemSize;
+        public long usedSize;
 
         /**
          * Total apps disk usage.
@@ -160,6 +184,13 @@ public class StorageMeasurement {
 
     private long mTotalSize;
     private long mAvailSize;
+
+    private long mSystemSize;
+    private long mCacheSize;
+    private long mDevSize;
+    private long mRootSize;
+    private long mDataSize;
+    private long mUsedSize;
 
     List<FileInfo> mFileInfoForMisc;
 
@@ -377,17 +408,92 @@ public class StorageMeasurement {
         }
 
         private void measureApproximateStorage(IMediaContainerService imcs) {
+            final Context context = mContext != null ? mContext.get() : null;
+            if (context == null) {
+                return;
+            }
+
             final String path = mVolume != null ? mVolume.getPath()
                     : Environment.getDataDirectory().getPath();
-            try {
-                final long[] stats = imcs.getFileSystemStats(path);
-                mTotalSize = stats[0];
-                mAvailSize = stats[1];
-            } catch (Exception e) {
-                Log.w(TAG, "Problem in container service", e);
+            synchronized (mLock) {
+                if (!path.equals(PATH_DATA)) {
+                    try {
+                        final long[] stats = imcs.getFileSystemStats(path);
+                        mTotalSize = stats[0];
+                        mAvailSize = stats[1];
+                        Log.i(TAG, "mTotalSize: " + mTotalSize + "; mAvailSize: "
+                                + mAvailSize);
+
+                        final File file = Environment.getRootDirectory();
+                        // mUsedSize = file.getTotalSpace() -
+                        // file.getFreeSpace();
+                        mUsedSize = mTotalSize - mAvailSize;
+                        mSystemSize = file.getTotalSpace();
+                    } catch (Exception e) {
+                        Log.w(TAG, "Problem in container service", e);
+                    }
+                } else {
+                    SharedPreferences storageSp = context.getSharedPreferences(
+                            XML_STORAGE, Context.MODE_PRIVATE);
+                    boolean isFirstStorage = storageSp.getBoolean(
+                            IS_FIRST_STORAGE, true);
+                    Editor editor = storageSp.edit();
+                    try {
+                        final long[] stats = imcs.getFileSystemStats(path);
+                        mDataSize = stats[0];
+                        mAvailSize = stats[1];
+                    } catch (Exception e) {
+                        Log.w(TAG, "Problem in container service", e);
+                    }
+                    if (isFirstStorage) {
+                        mUsedSize = mDataSize - mAvailSize;
+                        mRootSize = getDirectorysSize(PATH_ROOT);
+                        mCacheSize = getDirectorysSize(PATH_CACHE);
+                        mDevSize = getDirectorysSize(PATH_DEV);
+                        final File file = Environment.getRootDirectory();
+                        mSystemSize = file.getTotalSpace();
+                        mTotalSize = mDevSize * DIRECTORY_COUNT + mSystemSize
+                                + mDataSize - mCacheSize - mRootSize;
+                        double parseFloat = (double) mTotalSize / GET_G;
+                        int nSize = 0;
+                        for (int i = 0; i < AT_MOST_COUNT; i++) {
+                            double pow = Math.pow(BASE_NUMBER_TWO, i);
+                            if (((pow - 1) < parseFloat)
+                                    && (parseFloat < (pow + 1))) {
+                                nSize = (int) Math.round(pow);
+                                break;
+                            }
+                        }
+                        if (nSize != 0) {
+                            mTotalSize = (long) (nSize * Math.pow(
+                                    BASE_NUMBER_MORE, COUNT_G));
+                        }
+                        mSystemSize = mTotalSize - mDataSize;
+                        editor.putLong(TOTAL, mTotalSize);
+                        editor.putLong(SYSTEM, mSystemSize);
+                        editor.putLong(DATA_SYSTEM, mDataSize);
+                        editor.putLong(AVAILABLE, mAvailSize);
+                        editor.putBoolean(IS_FIRST_STORAGE, false);
+                        editor.commit();
+                    } else {
+                        mTotalSize = storageSp.getLong(TOTAL, 0);
+                        mSystemSize = storageSp.getLong(SYSTEM, 0);
+                        mDataSize = storageSp.getLong(DATA_SYSTEM, 0);
+                        mUsedSize = mDataSize - mAvailSize;
+                    }
+                }
             }
 
             sendInternalApproximateUpdate();
+        }
+
+        private long getDirectorysSize(String path) {
+            long size = 0;
+            File file = new File(path);
+            if(file.exists()) {
+                size = file.getTotalSpace();
+            }
+            return size;
         }
 
         private void measureExactStorage(IMediaContainerService imcs) {
@@ -401,6 +507,9 @@ public class StorageMeasurement {
 
             details.totalSize = mTotalSize;
             details.availSize = mAvailSize;
+
+            details.systemSize = mSystemSize;
+            details.usedSize = mUsedSize;
 
             final UserManager userManager = (UserManager) context.getSystemService(
                     Context.USER_SERVICE);

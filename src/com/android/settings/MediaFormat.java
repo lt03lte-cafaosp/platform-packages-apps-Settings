@@ -27,8 +27,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.android.internal.os.storage.ExternalStorageFormatter;
-
 /**
  * Confirm and execute a format of the sdcard.
  * Multiple confirmations are required: first, a general "are you sure
@@ -92,14 +90,17 @@ public class MediaFormat extends Activity {
                 if (Utils.isMonkeyRunning()) {
                     return;
                 }
-                Intent intent = new Intent(ExternalStorageFormatter.FORMAT_ONLY);
-                intent.setComponent(ExternalStorageFormatter.COMPONENT_NAME);
-                // Transfer the storage volume to the new intent
-                final StorageVolume storageVolume = getIntent().getParcelableExtra(
-                        StorageVolume.EXTRA_STORAGE_VOLUME);
-                intent.putExtra(StorageVolume.EXTRA_STORAGE_VOLUME, storageVolume);
-                startService(intent);
-                finish();
+            // In M,it don't provide the interface ExternalStorageFormatter.
+              /**
+               * Intent intent = new Intent(ExternalStorageFormatter.FORMAT_ONLY);
+               * intent.setComponent(ExternalStorageFormatter.COMPONENT_NAME);
+               * // Transfer the storage volume to the new intent
+               * final StorageVolume storageVolume = getIntent().getParcelableExtra(
+               *       StorageVolume.EXTRA_STORAGE_VOLUME);
+               * intent.putExtra(StorageVolume.EXTRA_STORAGE_VOLUME, storageVolume);
+               * startService(intent);
+               * finish();
+               */
             }
         };
 
@@ -119,8 +120,7 @@ public class MediaFormat extends Activity {
         }
 
         return new ChooseLockSettingsHelper(this)
-                .launchConfirmationActivity(request, null,
-                        getText(explanationResId));
+                .launchConfirmationActivity(request, getText(explanationResId));
     }
 
     @Override

@@ -102,4 +102,9 @@
     <!-- Accent color that matches the settings launcher icon -->
     <color name="icon_accent">#ffabffec</color>
 
+    <color name="memory_system">#ffF3B300</color>
+    <color name="memory_used_space">#ffff9700</color>
+    <color name="memory_cache_data">#9C661F</color>
+    <color name="memory_miscellaneous_files">#7B1FA2</color>
+
 </resources>

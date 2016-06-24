@@ -2973,4 +2973,11 @@
     <!--Schedule power on and off feature -->
     <string name="timer_switch_settings_title">定时开关机</string>
 
+    <string name="memory_system_usage">系统内存</string>
+    <string name="memory_system_usage_summary">运行系统所需的最小存储空间\n</string>
+    <string name="memory_used_usage">已用空间</string>
+    <string name="memory_used_usage_summary">当前正在使用的存储空间的数量\n</string>
+    <string name="memory_available_summary">当前可用的存储空间的数量\n</string>
+    <string name="memory_media_misc_usage_title">杂项文件</string>
+    <string name="memory_media_misc_usage_summary">用于存储杂项文件的内存量\n</string>
 </resources>

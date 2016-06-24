@@ -36,6 +36,7 @@ import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.provider.MediaStore;
 import android.text.format.Formatter;
+import android.util.Log;
 
 import com.android.settings.MediaFormat;
 import com.android.settings.R;
@@ -69,6 +70,9 @@ public class StorageVolumePreferenceCategory extends PreferenceCategory {
 
     private StorageItemPreference mItemTotal;
     private StorageItemPreference mItemAvailable;
+
+    private StorageItemPreference mItemSystem;
+    private StorageItemPreference mItemUsed;
     private StorageItemPreference mItemApps;
     private StorageItemPreference mItemDcim;
     private StorageItemPreference mItemMusic;
@@ -157,16 +161,29 @@ public class StorageVolumePreferenceCategory extends PreferenceCategory {
         addPreference(mUsageBarPreference);
 
         mItemTotal = buildItem(R.string.memory_size, 0);
-        mItemAvailable = buildItem(R.string.memory_available, R.color.memory_avail);
+        mItemAvailable = buildItem(R.string.memory_available,
+                R.color.memory_avail);
         addPreference(mItemTotal);
-        addPreference(mItemAvailable);
+        // no need to show this item by design needed
+        /**
+         * addPreference(mItemAvailable);
+         */
 
-        mItemApps = buildItem(R.string.memory_apps_usage, R.color.memory_apps_usage);
+        mItemSystem = buildItem(R.string.memory_system_usage,
+                R.color.memory_system);
+        mItemUsed = buildItem(R.string.memory_used_usage,
+                R.color.memory_used_space);
+        mItemApps = buildItem(R.string.memory_apps_usage,
+                R.color.memory_apps_usage);
         mItemDcim = buildItem(R.string.memory_dcim_usage, R.color.memory_dcim);
-        mItemMusic = buildItem(R.string.memory_music_usage, R.color.memory_music);
-        mItemDownloads = buildItem(R.string.memory_downloads_usage, R.color.memory_downloads);
-        mItemCache = buildItem(R.string.memory_media_cache_usage, R.color.memory_cache);
-        mItemMisc = buildItem(R.string.memory_media_misc_usage, R.color.memory_misc);
+        mItemMusic = buildItem(R.string.memory_music_usage,
+                R.color.memory_music);
+        mItemDownloads = buildItem(R.string.memory_downloads_usage,
+                R.color.memory_downloads);
+        mItemCache = buildItem(R.string.memory_media_cache_usage,
+                R.color.memory_cache_data);
+        mItemMisc = buildItem(R.string.memory_media_misc_usage_title,
+                R.color.memory_miscellaneous_files);
 
         mItemCache.setKey(KEY_CACHE);
 
@@ -176,16 +193,22 @@ public class StorageVolumePreferenceCategory extends PreferenceCategory {
                 addPreference(new PreferenceHeader(context, currentUser.name));
             }
 
-            addPreference(mItemApps);
-            addPreference(mItemDcim);
-            addPreference(mItemMusic);
-            addPreference(mItemDownloads);
+            addPreference(mItemSystem);
+            addPreference(mItemUsed);
+            // no need to show these items by design needed
+            /**
+             * addPreference(mItemApps);
+             * addPreference(mItemDcim);
+             * addPreference(mItemMusic);
+             * addPreference(mItemDownloads);
+             */
+
             addPreference(mItemCache);
             addPreference(mItemMisc);
+            addPreference(mItemAvailable);
 
             if (showUsers) {
                 addPreference(new PreferenceHeader(context, R.string.storage_other_users));
-
                 int count = 0;
                 for (UserInfo info : otherUsers) {
                     final int colorRes = count++ % 2 == 0 ? R.color.memory_user_light
@@ -251,21 +274,36 @@ public class StorageVolumePreferenceCategory extends PreferenceCategory {
             mFormatPreference.setSummary(summaryResId);
 
             addPreference(mFormatPreference);
-        }
 
-        final IPackageManager pm = ActivityThread.getPackageManager();
-        try {
-            if (pm.isStorageLow()) {
-                mStorageLow = new Preference(context);
-                mStorageLow.setOrder(ORDER_STORAGE_LOW);
-                mStorageLow.setTitle(R.string.storage_low_title);
-                mStorageLow.setSummary(R.string.storage_low_summary);
-                addPreference(mStorageLow);
-            } else if (mStorageLow != null) {
-                removePreference(mStorageLow);
-                mStorageLow = null;
+            final String state = mStorageManager.getVolumeState(mVolume
+                    .getPath());
+            boolean removeFormatPref = context.getResources().getBoolean(
+                    R.bool.show_storage_screen_config);
+
+            if (context.getResources().getBoolean(
+                    R.bool.config_hide_sdcard_pref)
+                    && !(Environment.MEDIA_MOUNTED.equals(state))
+                    || removeFormatPref) {
+                removePreference(mFormatPreference);
             }
-        } catch (RemoteException e) {
+
+            /* only add Storage low preference to INTERNAL STORAGE */
+            if (mVolume == null) {
+                final IPackageManager pm = ActivityThread.getPackageManager();
+                try {
+                    if (pm.isStorageLow()) {
+                        mStorageLow = new Preference(context);
+                        mStorageLow.setOrder(ORDER_STORAGE_LOW);
+                        mStorageLow.setTitle(R.string.storage_low_title);
+                        mStorageLow.setSummary(R.string.storage_low_summary);
+                        addPreference(mStorageLow);
+                    } else if (mStorageLow != null) {
+                        removePreference(mStorageLow);
+                        mStorageLow = null;
+                    }
+                } catch (RemoteException e) {
+                }
+            }
         }
     }
 
@@ -421,40 +459,50 @@ public class StorageVolumePreferenceCategory extends PreferenceCategory {
         final boolean showDetails = mVolume == null || mVolume.isPrimary();
         if (!showDetails) return;
 
+        Context context = getContext();
         // Count caches as available space, since system manages them
         mItemTotal.setSummary(formatSize(details.totalSize));
-        mItemAvailable.setSummary(formatSize(details.availSize));
+        mItemAvailable.setSummary(context.getResources().getString(
+                R.string.memory_available_summary)+formatSize(details.availSize));
 
         mUsageBarPreference.clear();
+        // no need to show these items by design needed
+        /**
+         * updatePreference(mItemApps, details.appsSize);
+         *
+         * final long dcimSize = totalValues(details.mediaSize, Environment.DIRECTORY_DCIM,
+         *         Environment.DIRECTORY_MOVIES, Environment.DIRECTORY_PICTURES);
+         * updatePreference(mItemDcim, dcimSize);
+         *
+         * final long musicSize = totalValues(details.mediaSize, Environment.DIRECTORY_MUSIC,
+         *         Environment.DIRECTORY_ALARMS, Environment.DIRECTORY_NOTIFICATIONS,
+         *         Environment.DIRECTORY_RINGTONES, Environment.DIRECTORY_PODCASTS);
+         * updatePreference(mItemMusic, musicSize);
+         *
+         * final long downloadsSize = totalValues(details.mediaSize, Environment.DIRECTORY_DOWNLOADS);
+         * updatePreference(mItemDownloads, downloadsSize);
+         */
 
-        updatePreference(mItemApps, details.appsSize);
-
-        final long dcimSize = totalValues(details.mediaSize, Environment.DIRECTORY_DCIM,
-                Environment.DIRECTORY_MOVIES, Environment.DIRECTORY_PICTURES);
-        updatePreference(mItemDcim, dcimSize);
-
-        final long musicSize = totalValues(details.mediaSize, Environment.DIRECTORY_MUSIC,
-                Environment.DIRECTORY_ALARMS, Environment.DIRECTORY_NOTIFICATIONS,
-                Environment.DIRECTORY_RINGTONES, Environment.DIRECTORY_PODCASTS);
-        updatePreference(mItemMusic, musicSize);
-
-        final long downloadsSize = totalValues(details.mediaSize, Environment.DIRECTORY_DOWNLOADS);
-        updatePreference(mItemDownloads, downloadsSize);
-
-        updatePreference(mItemCache, details.cacheSize);
-        updatePreference(mItemMisc, details.miscSize);
+        updatePreference(mItemSystem, details.systemSize, R.string.memory_system_usage_summary);
+        updatePreference(mItemUsed, details.usedSize, R.string.memory_used_usage_summary);
+        updatePreference(mItemCache, details.cacheSize, 0);
+        updatePreference(mItemMisc, details.miscSize, R.string.memory_media_misc_usage_summary);
 
         for (StorageItemPreference userPref : mItemUsers) {
             final long userSize = details.usersSize.get(userPref.userHandle);
-            updatePreference(userPref, userSize);
+            updatePreference(userPref, userSize, 0);
         }
 
         mUsageBarPreference.commit();
     }
 
-    private void updatePreference(StorageItemPreference pref, long size) {
+    private void updatePreference(StorageItemPreference pref, long size, int summary) {
         if (size > 0) {
-            pref.setSummary(formatSize(size));
+            if (summary == 0) {
+                pref.setSummary(formatSize(size));
+            } else {
+                pref.setSummary(getContext().getResources().getString(summary) + formatSize(size));
+            }
             final int order = pref.getOrder();
             mUsageBarPreference.addEntry(order, size / (float) mTotalSize, pref.color);
         } else {

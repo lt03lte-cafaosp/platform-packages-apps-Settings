@@ -1604,6 +1604,12 @@
                 android:value="true" />
         </activity>
 
+        <activity android:name="MediaFormat" android:label="@string/media_format_title">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
         <activity android:name="Settings$PrivateVolumeSettingsActivity"
                 android:label="@string/storage_settings_title"
                 android:taskAffinity="com.android.settings"

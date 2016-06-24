@@ -145,6 +145,15 @@ public class DashboardTileView extends FrameLayout implements View.OnClickListen
             i.setAction("com.codeaurora.STARTPROFILE");
             i.setPackage("com.android.profile");
             getContext().startActivity(i);
+        } else if (mTile.getTitle(getResources()).equals(
+                getResources().getString(R.string.storage_usb_settings))) {
+            if (getResources().getBoolean(R.bool.show_storage_screen_config)) {
+                mTile.fragment = "com.android.settings.deviceinfo.Memory";
+            } else {
+                mTile.fragment = "com.android.settings.deviceinfo.StorageSettings";
+            }
+            Utils.startWithFragment(getContext(), mTile.fragment, mTile.fragmentArguments, null, 0,
+                    mTile.titleRes, mTile.getTitle(getResources()));
         }
     }
 }

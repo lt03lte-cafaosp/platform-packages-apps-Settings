@@ -48,6 +48,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.android.internal.logging.MetricsLogger;
 import com.android.settings.MediaFormat;
 import com.android.settings.R;
 import com.android.settings.SettingsActivity;
@@ -148,6 +149,11 @@ public class Memory extends SettingsPreferenceFragment implements Indexable {
     }
 
     @Override
+    protected int getMetricsCategory() {
+        return MetricsLogger.DEVICEINFO_STORAGE;
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_MEDIA_SCANNER_STARTED);
@@ -196,36 +202,44 @@ public class Memory extends SettingsPreferenceFragment implements Indexable {
         super.onDestroy();
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.storage, menu);
-    }
-
-    @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-        final MenuItem usb = menu.findItem(R.id.storage_usb);
-        UserManager um = (UserManager)getActivity().getSystemService(Context.USER_SERVICE);
-        boolean usbItemVisible = !isMassStorageEnabled()
-                && !um.hasUserRestriction(UserManager.DISALLOW_USB_FILE_TRANSFER);
-        usb.setVisible(usbItemVisible);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.storage_usb:
-                if (getActivity() instanceof SettingsActivity) {
-                    ((SettingsActivity) getActivity()).startPreferencePanel(
-                            UsbSettings.class.getCanonicalName(),
-                            null, R.string.storage_title_usb, null, this, 0);
-                } else {
-                    startFragment(this, UsbSettings.class.getCanonicalName(),
-                            R.string.storage_title_usb, -1, null);
-                }
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
+    //  no need to show this menu by designed.
+    /**
+     * @Override
+     * public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+     *    inflater.inflate(R.menu.storage, menu);
+     * }
+     *
+     * @Override
+     * public void onPrepareOptionsMenu(Menu menu) {
+     *   final MenuItem usb = menu.findItem(R.id.storage_usb);
+     *   String title = getActivity().getResources().getString(
+     *           com.android.internal.R.string.config_regional_connection_menu_option);
+     *  if (title != null && !title.equals("")) {
+     *      usb.setTitle(title);
+     *  }
+     *  UserManager um = (UserManager)getActivity().getSystemService(Context.USER_SERVICE);
+     *   boolean usbItemVisible = !isMassStorageEnabled()
+     *           && !um.hasUserRestriction(UserManager.DISALLOW_USB_FILE_TRANSFER);
+     *   usb.setVisible(usbItemVisible);
+     * }
+     *
+     * @Override
+     * public boolean onOptionsItemSelected(MenuItem item) {
+     *    switch (item.getItemId()) {
+     *       case R.id.storage_usb:
+     *           if (getActivity() instanceof SettingsActivity) {
+     *               ((SettingsActivity) getActivity()).startPreferencePanel(
+     *                       UsbSettings.class.getCanonicalName(),
+     *                       null, R.string.storage_title_usb, null, this, 0);
+     *           } else {
+     *               startFragment(this, UsbSettings.class.getCanonicalName(),
+     *                       R.string.storage_title_usb, -1, null);
+     *           }
+     *           return true;
+     *   }
+     *   return super.onOptionsItemSelected(item);
+     * }
+     */
 
     private synchronized IMountService getMountService() {
        if (mMountService == null) {
@@ -286,7 +300,7 @@ public class Memory extends SettingsPreferenceFragment implements Indexable {
             String action = intent.getAction();
             if (action.equals(UsbManager.ACTION_USB_STATE)) {
                boolean isUsbConnected = intent.getBooleanExtra(UsbManager.USB_CONNECTED, false);
-               String usbFunction = mUsbManager.getDefaultFunction();
+               String usbFunction = getDefaultFunctions();
                for (StorageVolumePreferenceCategory category : mCategories) {
                    category.onUsbStateChanged(isUsbConnected, usbFunction);
                }
@@ -297,6 +311,15 @@ public class Memory extends SettingsPreferenceFragment implements Indexable {
             }
         }
     };
+
+    private String getDefaultFunctions() {
+        String func = SystemProperties.get("persist.sys.usb.config",
+                UsbManager.USB_FUNCTION_NONE);
+        if (UsbManager.USB_FUNCTION_NONE.equals(func)) {
+            func = UsbManager.USB_FUNCTION_MTP;
+        }
+        return func;
+    }
 
     @Override
     public Dialog onCreateDialog(int id) {

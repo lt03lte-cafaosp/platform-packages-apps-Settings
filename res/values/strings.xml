@@ -2285,6 +2285,46 @@
     <string name="sd_format_summary" product="default">Erases all data on the SD card, such as music and photos</string>
     <!-- SD card status when it is mounted as read only. Will be appended to size, starts with an unbreakable space -->
 
+    <!-- string resources for USB OTG & UICC features -->
+    <string name="storage_usb">USB storage</string>
+    <string name="storage_uicc">UICC storage</string>
+    <string name="usb_eject" product="default">Unmount USB storage</string>
+    <string name="usb_eject_summary" product="default">Unmount the USB storage so you can safely remove it</string>
+    <string name="usb_format" product="default">Erase USB storage</string>
+    <string name="usb_format_summary" product="default">Erases all data on the USB storage, such as music and photos</string>
+    <string name="usb_mount" product="default">Mount USB storage</string>
+    <string name="usb_mount_summary" product="default"></string>
+    <string name="usb_insert_summary" product="default">Insert an USB storage for mounting</string>
+    <string name="uicc_eject" product="default">Unmount UICC storage</string>
+    <string name="uicc_eject_summary" product="default">Unmount the UICC storage so you can safely remove it</string>
+    <string name="uicc_format" product="default">Erase UICC storage</string>
+    <string name="uicc_format_summary" product="default">Erases all data on the UICC storage, such as music and photos</string>
+    <string name="uicc_mount" product="default">Mount UICC storage</string>
+    <string name="uicc_mount_summary" product="default"></string>
+    <string name="uicc_insert_summary" product="default">Insert an UICC storage for mounting</string>
+
+    <string name="dlg_confirm_usb_unmount_title" product="default">Unmount USB storage?</string>
+    <string name="dlg_confirm_uicc_unmount_title" product="default">Unmount UICC storage?</string>
+    <string name="dlg_confirm_usb_unmount_text" product="default">If you unmount the USB storage, some apps you are using will stop and may be unavailable until you remount the USB storage.</string>
+    <string name="dlg_confirm_uicc_unmount_text" product="default">If you unmount the UICC storage, some apps you are using will stop and may be unavailable until you remount the UICC storage.</string>
+    <string name="dlg_error_usb_unmount_text" product="default">Couldn\'t unmount USB storage. Try again later.</string>
+    <string name="dlg_error_uicc_unmount_text" product="default">Couldn\'t unmount UICC storage. Try again later.</string>
+    <string name="usb_unmount_inform_text" product="default">USB storage will be unmounted.</string>
+    <string name="uicc_unmount_inform_text" product="default">UICC storage will be unmounted.</string>
+
+    <string name="usb_media_format_title" product="default">Erase USB storage</string>
+    <string name="uicc_media_format_title" product="default">Erase UICC storage</string>
+    <string name="usb_media_format_summary" product="default">Erases all data on the USB storage</string>
+    <string name="uicc_media_format_summary" product="default">Erases all data on the UICC storage</string>
+    <string name="usb_media_format_desc" product="default">Erase the USB storage? You will lose <b>all</b> data on the storage!</string>
+    <string name="uicc_media_format_desc" product="default">Erase the UICC storage? You will lose <b>all</b> data on the storage!</string>
+    <string name="usb_media_format_button_text" product="default">Erase USB storage</string>
+    <string name="uicc_media_format_button_text" product="default">Erase UICC storage</string>
+    <string name="usb_media_format_final_desc" product="default">Erase the USB storage, deleting all files stored there? You can\'t reverse this action!</string>
+    <string name="uicc_media_format_final_desc" product="default">Erase the UICC storage, deleting all files stored there? You can\'t reverse this action!</string>
+    <string name="usb_media_format_gesture_explanation" product="default">You need to draw your unlock pattern to confirm that you want to erase the USB storage.</string>
+    <string name="uicc_media_format_gesture_explanation" product="default">You need to draw your unlock pattern to confirm that you want to erase the UICC storage.</string>
+
     <!-- Title of dialog asking user to confirm before clearing all caches. [CHAR LIMIT=48] -->
     <string name="memory_clear_cache_title">Clear cached data?</string>
     <!-- Message of dialog asking user to confirm before clearing all caches. [CHAR LIMIT=48] -->
@@ -2719,6 +2759,34 @@
     <string name="master_clear_progress_title" >Erasing</string>
     <!-- Master clear progress screen text [CHAR LIMIT=75] -->
     <string name="master_clear_progress_text">Please wait...</string>
+
+    <!-- Media Format -->
+    <!-- SD card & phone storage settings screen, setting option name under Internal phone storage heading [CHAR LIMIT=25] -->
+    <string name="media_format_title" product="nosdcard">Erase USB storage</string>
+    <!-- SD card & phone storage settings screen, setting option name under Internal phone storage heading -->
+    <string name="media_format_title" product="default">Erase SD card</string>
+    <!-- SD card & phone storage settings screen, setting option summary text under Internal phone storage heading [CHAR LIMIT=30] -->
+    <string name="media_format_summary" product="nosdcard">Erases all data in USB storage</string>
+    <!-- SD card & phone storage settings screen, setting option summary text under Internal phone storage heading -->
+    <string name="media_format_summary" product="default">Erases all data on the SD card</string>
+    <!-- SD card & phone storage settings screen, message on screen after user selects Factory data reset [CHAR LIMIT=NONE] -->
+    <string name="media_format_desc" product="nosdcard">Erase all USB storage? You will lose <b>all</b> stored data!</string>
+    <!-- SD card & phone storage settings screen, message on screen after user selects Factory data reset [CHAR LIMIT=NONE] -->
+    <string name="media_format_desc" product="default">Erase the SD card? You will lose <b>all</b> data on the card!</string>
+    <!-- SD card & phone storage settings screen, button on screen after user selects Factory data reset [CHAR LIMIT=25] -->
+    <string name="media_format_button_text" product="nosdcard">Erase USB storage</string>
+    <!-- SD card & phone storage settings screen, button on screen after user selects Factory data reset -->
+    <string name="media_format_button_text" product="default">Erase SD card</string>
+    <!-- SD card & phone storage settings screen, message on screen after user selects Format media button [CHAR LIMIT=NONE] -->
+    <string name="media_format_final_desc" product="nosdcard">Erase the USB storage, deleting all files stored there? You can\'t reverse this action!</string>
+    <!-- SD card & phone storage settings screen, message on screen after user selects Format media button [CHAR LIMIT=NONE] -->
+    <string name="media_format_final_desc" product="default">Erase the SD card, deleting all files stored there? You can\'t reverse this action!</string>
+    <!-- SD card & phone storage settings screen, button on screen after user selects Format media button -->
+    <string name="media_format_final_button_text">Erase everything</string>
+    <!-- Explanation of drawing unlock pattern to format card [CHAR LIMIT=NONE] -->
+    <string name="media_format_gesture_explanation" product="nosdcard">You need to draw your unlock pattern to confirm that you want to erase the USB storage.</string>
+    <!-- Explanation of drawing unlock pattern to format card [CHAR LIMIT=NONE] -->
+    <string name="media_format_gesture_explanation" product="default">You need to draw your unlock pattern to confirm that you want to erase the SD card.</string>
 
     <!-- Main settings screen, Call settings title for item to go into the call settings -->
     <string name="call_settings_title">Call settings</string>
@@ -7327,5 +7395,28 @@ ation on your phone or online at https://my.t-mobile.com under Manage > Plans an
     <string name="choose_font_Medium">Medium</string>
     <string name="choose_font_Large">Large</string>
     <string name="choose_font_VeryLarge">VeryLarge</string>
+
+    <!-- Label for the EAP identity of the network by carrier function-->
+    <string name="wifi_eap_identity_carrier_function">Username</string>
+    <string name="wifi_eap_carrier_function_name">CMCC</string>
+    <string name="wifi_call_without_GBA_sim_error_message">Wi-Fi calling must be used on a GBA capable T-Mobile US SIM card is used.</string>
+
+    <string name="collect_diagnostics_title">Collect Diagnostics</string>
+    <string name="collect_diagnostics_summary">Collect diagnostics data for troubleshooting</string>
+
+    <string name="tethering_settings_summary">Share your device\'s mobile data connection via USB or a Mobile HotSpot</string>
+
+    <string name="timer_switch_settings_title">Scheduled power on and off</string>
+
+    <string name="tether_settings_title_all">Tethering &amp; portable hotspot</string>
+    <string name="wifiap_mobile_hotspot_help">Status</string>
+
+    <string name="memory_system_usage">System memory</string>
+    <string name="memory_system_usage_summary">The minimum amount of storage space required to run the system.\n</string>
+    <string name="memory_used_usage">Used space</string>
+    <string name="memory_used_usage_summary">The amount of storage space currently being used.\n</string>
+    <string name="memory_available_summary">The amount of storage space currently available.\n</string>
+    <string name="memory_media_misc_usage_title">Miscellaneous files</string>
+    <string name="memory_media_misc_usage_summary">The amount of memory used to store miscellaneous files.\n</string>
 
 </resources>
