@@ -306,7 +306,9 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
 
         // Remove NFC if not available
         mNfcAdapter = NfcAdapter.getDefaultAdapter(activity);
-        if (mNfcAdapter == null) {
+        boolean showNfcAndAndroidBeam = getActivity().getResources().getBoolean(
+                R.bool.config_show_nfc_android_beam);
+        if (mNfcAdapter == null || showNfcAndAndroidBeam) {
             getPreferenceScreen().removePreference(nfc);
             getPreferenceScreen().removePreference(androidBeam);
             mNfcEnabler = null;
