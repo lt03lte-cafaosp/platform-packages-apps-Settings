@@ -215,6 +215,8 @@ public class SettingsActivity extends Activity
 
     private static final String EMPTY_QUERY = "";
 
+    private static final String ACTION_TIMER_SWITCH = "qti.intent.action.TIMER_SWITCH";
+
     /**
      * Settings will search for system activities of this action and add them as a top level
      * settings tile using the following parameters.
@@ -1240,6 +1242,8 @@ public class SettingsActivity extends Activity
         final UserManager um = (UserManager) getSystemService(Context.USER_SERVICE);
 
         final int size = target.size();
+        boolean showScheduledPower = getResources().getBoolean(
+            R.bool.config_scheduled_power_on_off);
         for (int i = 0; i < size; i++) {
 
             DashboardCategory category = target.get(i);
@@ -1329,6 +1333,16 @@ public class SettingsActivity extends Activity
                 } else if (id == R.id.qtifeedback_settings){
                     if (!mSMQ.isShowSmqSettings()) {
                         removeTile = true;
+                    }
+                } else if (id == R.id.timer_switch_settings) {
+                    Intent intent = new Intent(ACTION_TIMER_SWITCH);
+                    List<ResolveInfo> infos = getBaseContext().getPackageManager()
+                        .queryIntentActivities(intent, 0);
+                    if (infos == null || infos.isEmpty() || !showScheduledPower) {
+                        removeTile = true;
+                    } else {
+                        tile.title = infos.get(0).activityInfo.loadLabel(getPackageManager());
+                        tile.intent = intent;
                     }
                 }
 
