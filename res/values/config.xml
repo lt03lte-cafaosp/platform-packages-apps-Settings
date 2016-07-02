@@ -124,4 +124,5 @@
     <bool name="config_regional_wifi_call_only_in_roaming">false</bool>
     <!-- Tethering & Mobile HotSpots display summary on Tmoblie -->
     <bool name="config_tethering_settings_display_summary_Tmobile">false</bool>
+    <bool name="config_regional_account_check_dialog_enable">false</bool>
 </resources>
