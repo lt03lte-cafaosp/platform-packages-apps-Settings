@@ -121,4 +121,7 @@
 
     <!-- Whether disable dds -->
     <bool name="config_dds_disable">false</bool>
+
+    <!-- whether to show cast preference in displaysettings config -->
+    <bool name="show_cast_preference_config">false</bool>
 </resources>
