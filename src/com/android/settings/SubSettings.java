@@ -37,4 +37,5 @@ public class SubSettings extends SettingsActivity {
     }
     public static class BluetoothSubSettings extends SubSettings { /* empty */ }
     public static class DataUsageSummarySubSettings extends SubSettings { /* empty */ }
+    public static class SavedAccessPointsSubSettings extends SubSettings { /* empty */ }
 }
