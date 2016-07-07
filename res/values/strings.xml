@@ -7198,7 +7198,6 @@ ation on your phone or online at https://my.t-mobile.com under Manage > Plans an
     <!-- Message for the dialog alerting user CT card in wrong slot -->
     <string name="alert_ct_in_wrong_slot_message">Currently only slot 1 support ChinaTelecom card, if you insert ChinaTelecom card in slot 2, it may be out of service, please re-insert ChinaTelecom card in the right slot.</string>
     <!-- end for portable wifi hotspot setting -->
-    <string name="wifi_calling_settings_title">Wifi Calling Settings</string>
     <string name="wifi_calling_tutorial_title">Tutorial of Wi-Fi Calling</string>
     <string name="wifi_calling_questions_title">Questions of Wi-Fi Calling</string>
     <string name="question_what_is_wifi_calling"> What is Wi-Fi Calling?</string>
