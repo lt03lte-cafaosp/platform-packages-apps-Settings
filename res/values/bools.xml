@@ -124,4 +124,11 @@
 
     <!-- whether to show cast preference in displaysettings config -->
     <bool name="show_cast_preference_config">false</bool>
+
+    <!-- Whether to show options menu in LocationSettings -->
+    <bool name="show_options_menu_config">false</bool>
+
+    <!-- Whether to show nfc and android beam in WireLessSettings -->
+    <bool name="config_show_nfc_android_beam">false</bool>
+
 </resources>

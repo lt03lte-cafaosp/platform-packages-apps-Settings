@@ -306,7 +306,9 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
 
         // Remove NFC if not available
         mNfcAdapter = NfcAdapter.getDefaultAdapter(activity);
-        if (mNfcAdapter == null) {
+        boolean showNfcAndAndroidBeam = getActivity().getResources().getBoolean(
+                R.bool.config_show_nfc_android_beam);
+        if (mNfcAdapter == null || showNfcAndAndroidBeam) {
             getPreferenceScreen().removePreference(nfc);
             getPreferenceScreen().removePreference(androidBeam);
             mNfcEnabler = null;
@@ -353,6 +355,10 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
             Preference p = findPreference(KEY_TETHER_SETTINGS);
             p.setTitle(Utils.getTetheringLabel(cm));
 
+            if (this.getResources().getBoolean(
+                    R.bool.config_tethering_settings_display_summary_Tmobile)){
+                p.setSummary(R.string.tethering_settings_summary);
+            }
             // Grey out if provisioning is not available.
             p.setEnabled(!TetherSettings
                     .isProvisioningNeededButUnavailable(getActivity()));
