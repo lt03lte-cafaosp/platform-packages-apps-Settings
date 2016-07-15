@@ -74,7 +74,9 @@ public class SimPreferenceDialog extends Activity {
         mDialogLayout = inflater.inflate(R.layout.multi_sim_dialog, null);
         mBuilder.setView(mDialogLayout);
 
-        createEditDialog(bundle);
+        if (mSubInfoRecord != null) {
+            createEditDialog(bundle);
+        }
     }
 
     @Override
