@@ -7334,4 +7334,5 @@ ation on your phone or online at https://my.t-mobile.com under Manage > Plans an
     <string name="collect_diagnostics_title">Collect Diagnostics</string>
     <string name="collect_diagnostics_summary">Collect diagnostics data for troubleshooting</string>
     <string name="tethering_settings_summary">Share your device\'s mobile data connection via USB or a Mobile HotSpot</string>
+    <string name="timer_switch_settings_title">Scheduled power on and off</string>
 </resources>

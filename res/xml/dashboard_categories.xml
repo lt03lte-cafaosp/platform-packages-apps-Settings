@@ -237,20 +237,26 @@
         android:id="@+id/system_section"
         android:key="@string/category_key_system"
         android:title="@string/header_category_system" >
-	<dashboard-tile
+    <dashboard-tile
                 android:id="@+id/qtifeedback_settings"
                 android:title="@string/qtifeedback_settings_title"
-				android:summary="@string/qtifeedback_settings_subtitle"
+                android:summary="@string/qtifeedback_settings_subtitle"
                 android:icon="@drawable/ic_settings_qti_feedback">
-		<intent android:action="com.qti.smq.snapdragonSettings" />
+        <intent android:action="com.qti.smq.snapdragonSettings" />
         </dashboard-tile>
-	<!-- Date & Time -->
+    <!-- Date & Time -->
         <dashboard-tile
                 android:id="@+id/date_time_settings"
                 android:title="@string/date_and_time_settings_title"
                 android:fragment="com.android.settings.DateTimeSettings"
                 android:icon="@drawable/ic_settings_date_time"
                 />
+
+        <!-- Scheduled power on&off -->
+        <dashboard-tile
+                android:id="@+id/timer_switch_settings"
+                android:title="@string/timer_switch_settings_title"
+                android:icon="@drawable/ic_settings_timerswitch" />
 
         <!-- Accessibility feedback -->
         <dashboard-tile
