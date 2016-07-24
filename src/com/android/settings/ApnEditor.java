@@ -629,7 +629,9 @@ public class ApnEditor extends InstrumentedPreferenceActivity
     protected void onSaveInstanceState(Bundle icicle) {
         super.onSaveInstanceState(icicle);
         if (validateAndSave(true)) {
-            icicle.putInt(SAVED_POS, mCursor.getInt(ID_INDEX));
+            if (!Utils.isMonkeyRunning() && mCursor != null) {
+                icicle.putInt(SAVED_POS, mCursor.getInt(ID_INDEX));
+            }
         }
     }
 
