@@ -129,4 +129,6 @@
     <!-- Tethering & Mobile HotSpots display summary on Tmoblie -->
     <bool name="config_tethering_settings_display_summary_Tmobile">false</bool>
     <bool name="config_regional_account_check_dialog_enable">false</bool>
+    <!-- Keep HotSpot on 10 mins as defulat -->
+    <bool name="config_keep_hotspot_on_10mins_default">false</bool>
 </resources>
