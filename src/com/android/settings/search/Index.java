@@ -108,6 +108,13 @@ public class Index {
     public static final int COLUMN_INDEX_KEY = 13;
     public static final int COLUMN_INDEX_USER_ID = 14;
 
+    private static final int CURSOR_ARRAY_LENGTH = 2;
+    // match these columns: data_title and data_title_normalized and data_keywords
+    private static final int CURSOR_FIRST = 0;
+    /* match these columns :data_summary_on and data_summary_on_normalized and
+    data_summary_off and data_summary_off_normalized and data_entries */
+    private static final int CURSOR_SECOND= 1;
+
     public static final String ENTRIES_SEPARATOR = "|";
 
     // If you change the order of columns here, you SHOULD change the COLUMN_INDEX_XXX values
@@ -249,6 +256,34 @@ public class Index {
         final String secondarySql = sql.toString();
         Log.d(LOG_TAG, "Search secondary query: " + secondarySql);
         cursors[1] = database.rawQuery(secondarySql, null);
+
+        return new MergeCursor(cursors);
+    }
+
+    public Cursor searchForOtherUsers(String query, String filter) {
+        final SQLiteDatabase database = getReadableDatabase();
+        final Cursor[] cursors = new Cursor[CURSOR_ARRAY_LENGTH];
+
+        StringBuilder sb = new StringBuilder(buildSearchSQLForColumn(query,
+                MATCH_COLUMNS_PRIMARY));
+        sb.append(filter);
+        sb.append(" ORDER BY ");
+        sb.append(IndexColumns.DATA_RANK);
+
+        String primarySql = sb.toString();
+        Log.d(LOG_TAG, "Search primary query for otherUsers: " + primarySql);
+        cursors[CURSOR_FIRST] = database.rawQuery(primarySql, null);
+
+        // We need to use an EXCEPT operator as negate MATCH queries do not work.
+        StringBuilder sql = new StringBuilder(buildSearchSQLForColumn(query,
+                MATCH_COLUMNS_SECONDARY));
+        sql.append(filter);
+        sql.append(" EXCEPT ");
+        sql.append(primarySql);
+
+        final String secondarySql = sql.toString();
+        Log.d(LOG_TAG, "Search secondary query for otherUsers: " + secondarySql);
+        cursors[CURSOR_SECOND] = database.rawQuery(secondarySql, null);
 
         return new MergeCursor(cursors);
     }
