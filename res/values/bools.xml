@@ -119,6 +119,9 @@
     <!-- Whether to show carrier function in EAP method for adding network -->
     <bool name="config_eap_carrier_function">false</bool>
 
+    <!-- whether to show settings design -->
+    <bool name="config_settings_design">false</bool>
+
     <!-- Whether disable dds -->
     <bool name="config_dds_disable">false</bool>
 
@@ -130,6 +133,9 @@
 
     <!-- Whether to show nfc and android beam in WireLessSettings -->
     <bool name="config_show_nfc_android_beam">false</bool>
+
+    <!-- whether to show font size dialog config -->
+    <bool name="show_font_size_config">false</bool>
 
     <!-- Whether to show scheduled power on and off -->
     <bool name="config_scheduled_power_on_off">false</bool>
