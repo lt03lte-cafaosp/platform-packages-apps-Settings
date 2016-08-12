@@ -103,6 +103,8 @@ public class ApnEditor extends PreferenceActivity
     private boolean mApnDisable = false;
     private Resources mRes;
     private TelephonyManager mTelephonyManager;
+    private String mMvnoTypeStr;
+    private String mMvnoMatchDataStr;
 
     /**
      * Standard projection for the interesting columns of a normal note.
@@ -202,8 +204,8 @@ public class ApnEditor extends PreferenceActivity
         final Intent intent = getIntent();
         final String action = intent.getAction();
         // Read the subscription received from Phone settings.
-        mSubId = intent.getIntExtra(SelectSubscription.SUBSCRIPTION_KEY,
-                SubscriptionManager.getDefaultSubId());
+        mSubId = intent.getIntExtra(ApnSettings.SUB_ID,
+                SubscriptionManager.INVALID_SUBSCRIPTION_ID);
         Log.d(TAG,"ApnEditor onCreate received sub: " + mSubId);
         mDisableEditor = intent.getBooleanExtra("DISABLE_EDITOR",false);
 
@@ -219,6 +221,8 @@ public class ApnEditor extends PreferenceActivity
                         icicle.getInt(SAVED_POS));
             }
             mNewApn = true;
+            mMvnoTypeStr = intent.getStringExtra(ApnSettings.MVNO_TYPE);
+            mMvnoMatchDataStr = intent.getStringExtra(ApnSettings.MVNO_MATCH_DATA);
             // If we were unable to create a new note, then just finish
             // this activity.  A RESULT_CANCELED will be sent back to the
             // original activity if they requested a result.
@@ -306,6 +310,10 @@ public class ApnEditor extends PreferenceActivity
             mMvnoMatchData.setEnabled(false);
             mMvnoMatchData.setText(mCursor.getString(MVNO_MATCH_DATA_INDEX));
 
+            if (mNewApn && mMvnoTypeStr != null && mMvnoMatchDataStr != null) {
+                mMvnoType.setValue(mMvnoTypeStr);
+                mMvnoMatchData.setText(mMvnoMatchDataStr);
+            }
             String pppNumber = mCursor.getString(PPP_NUMBER_INDEX);
             mPppNumber.setText(pppNumber);
             if (pppNumber == null) {
@@ -446,6 +454,10 @@ public class ApnEditor extends PreferenceActivity
                     mMvnoMatchData.setText(numeric + "x");
                 } else if (values[mvnoIndex].equals("GID")) {
                     mMvnoMatchData.setText(mTelephonyManager.getGroupIdLevel1(mSubId));
+                } else if (values[mvnoIndex].equals("ICCID")) {
+                    if (mMvnoMatchDataStr != null) {
+                        mMvnoMatchData.setText(mMvnoMatchDataStr);
+                    }
                 }
             }
 
