@@ -313,6 +313,10 @@ public class NotificationSettings extends SettingsPreferenceFragment implements 
             mPhoneRingtonePreference = null;
         }
         mNotificationRingtonePreference = root.findPreference(KEY_NOTIFICATION_RINGTONE);
+        if (Utils.isMonkeyRunning()) {
+            root.removePreference(mPhoneRingtonePreference);
+            root.removePreference(mNotificationRingtonePreference);
+        }
     }
 
     private void lookupRingtoneNames() {
