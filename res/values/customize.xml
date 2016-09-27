@@ -34,6 +34,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <!-- Customize date format or not -->
     <bool name="config_regional_date_format">false</bool>
 
-    <bool name="show_storage_screen_config">true</bool>
+    <bool name="show_storage_screen_config">false</bool>
 
 </resources>
