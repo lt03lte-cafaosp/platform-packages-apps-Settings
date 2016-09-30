@@ -126,8 +126,8 @@
     <bool name="config_regional_wifi_call_on_gba_sim">false</bool>
     <!-- wifi call only when phone in roaming network -->
     <bool name="config_regional_wifi_call_only_in_roaming">false</bool>
-    <!-- Tethering & Mobile HotSpots display summary on Tmoblie -->
-    <bool name="config_tethering_settings_display_summary_Tmobile">false</bool>
+    <!-- Config to Tethering & Mobile HotSpots display summary -->
+    <bool name="config_tethering_settings_display_summary">false</bool>
     <bool name="config_regional_account_check_dialog_enable">false</bool>
     <!-- Keep HotSpot on 10 mins as defulat -->
     <bool name="config_keep_hotspot_on_10mins_default">false</bool>

@@ -366,7 +366,7 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
             p.setTitle(Utils.getTetheringLabel(cm));
 
             if (this.getResources().getBoolean(
-                    R.bool.config_tethering_settings_display_summary_Tmobile)){
+                    R.bool.config_tethering_settings_display_summary)){
                 p.setSummary(R.string.tethering_settings_summary);
             }
             // Grey out if provisioning is not available.
