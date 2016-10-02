@@ -7198,7 +7198,6 @@ ation on your phone or online at https://my.t-mobile.com under Manage > Plans an
     <!-- Message for the dialog alerting user CT card in wrong slot -->
     <string name="alert_ct_in_wrong_slot_message">Currently only slot 1 support ChinaTelecom card, if you insert ChinaTelecom card in slot 2, it may be out of service, please re-insert ChinaTelecom card in the right slot.</string>
     <!-- end for portable wifi hotspot setting -->
-    <string name="wifi_calling_settings_title">Wifi Calling Settings</string>
     <string name="wifi_calling_tutorial_title">Tutorial of Wi-Fi Calling</string>
     <string name="wifi_calling_questions_title">Questions of Wi-Fi Calling</string>
     <string name="question_what_is_wifi_calling"> What is Wi-Fi Calling?</string>
@@ -7263,7 +7262,7 @@ ation on your phone or online at https://my.t-mobile.com under Manage > Plans an
     <string name="wifi_calling_wizard_learn_more">Learn more</string>
     <string name="wifi_calling_help_wizard_title">Learn all about Wi-Fi Calling</string>
     <string name="wifi_calling_wizard_content_step_1">This is tutorial of wi-fi calling. \n \"Skip\" will skip the wizard this time. \n \"Learn more\" will show more info about it</string>
-    <string name="wifi_calling_wizard_content_step_2">Wi-Fi calling lets you say goodbye to spotty coverage. With Wi-Fi calling you can send and receive calls and messages over a Wi-Fi network using your existing T-Mobile plan.  \n  There\'s no special setup needed for Wi-Fi calling.  From the Settings menu,go to Wireless and Networks and connects to a Wi-Fi networks to get started.</string>
+    <string name="wifi_calling_wizard_content_step_2">Wi-Fi calling lets you say goodbye to spotty coverage. With Wi-Fi calling you can send and receive calls and messages over a Wi-Fi network.  \n  There\'s no special setup needed for Wi-Fi calling.  From the Settings menu,go to Wireless and Networks and connects to a Wi-Fi networks to get started.</string>
     <string name="wifi_calling_wizard_content_step_3">Once you see the Wi-Fi Calling icon in the status bar,your phone is ready for Wi-Fi Calling. </string>
     <string name="wifi_calling_wizard_content_step_4">To stay on a Wi-Fi Call,remain in the range of the Wi-Fi network.You\'ll get an audible beep and a screen message letting you know when a call has dropped because you have moved out of range.</string>
     <string name="wifi_calling_notification_title">Calls will be made over Wi-Fi</string>
@@ -7332,7 +7331,7 @@ ation on your phone or online at https://my.t-mobile.com under Manage > Plans an
     <!-- Label for the EAP identity of the network by carrier function-->
     <string name="wifi_eap_identity_carrier_function">Username</string>
     <string name="wifi_eap_carrier_function_name">CMCC</string>
-    <string name="wifi_call_without_GBA_sim_error_message">Wi-Fi calling must be used on a GBA capable T-Mobile US SIM card is used.</string>
+    <string name="wifi_call_without_GBA_sim_error_message">Wi-Fi calling must be used on a GBA capable US SIM card is used.</string>
 
     <string name="collect_diagnostics_title">Collect Diagnostics</string>
     <string name="collect_diagnostics_summary">Collect diagnostics data for troubleshooting</string>
