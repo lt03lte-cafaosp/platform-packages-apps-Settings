@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016, The Linux Foundation. All rights reserved.
+     Not a Contribution.
+     Apache license notifications and license are retained
+     for attribution purposes only.
+-->
 <!-- Copyright (C) 2014 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
      You may obtain a copy of the License at
 
-          http://www.apache.org/licenses/LICENSE-2.0
+       http://www.apache.org/licenses/LICENSE-2.0
 
      Unless required by applicable law or agreed to in writing, software
      distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +25,47 @@
     <!-- WIRELESS and NETWORKS -->
     <dashboard-category
             android:id="@+id/wireless_section"
+            android:key="@string/category_key_wireless"
             android:title="@string/header_category_wireless_networks" >
+
+        <!-- SIM Cards -->
+        <dashboard-tile
+                android:id="@+id/sim_settings"
+                android:title="@string/sim_settings_title"
+                android:fragment="com.android.settings.sim.SimSettings"
+                android:icon="@drawable/ic_settings_sim"
+                />
+
+        <!-- Call Settings -->
+        <dashboard-tile
+                android:id="@+id/call_settings"
+                android:title="@string/call_settings_title"
+                android:icon="@drawable/ic_settings_call">
+                <intent
+                android:action="android.telecom.action.SHOW_CALL_SETTINGS"
+                android:targetClass="com.android.phone.CallFeaturesSetting"
+                android:targetPackage="com.android.phone" />
+                </dashboard-tile>
+
+        <!-- Data Usage -->
+        <dashboard-tile
+                android:id="@+id/data_usage_settings"
+                android:title="@string/data_usage_summary_title"
+                android:fragment="com.android.settings.DataUsageSummary"
+                android:icon="@drawable/ic_settings_data_usage"
+                />
+
+        <!-- Mobile Network -->
+        <dashboard-tile
+            android:id="@+id/mobile_network_settings"
+            android:key="mobile_network_settings"
+            android:icon="@drawable/ic_settings_mobile_network"
+            android:title="@string/network_settings_title" >
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetClass="com.android.phone.MobileNetworkSettings"
+                android:targetPackage="com.android.phone" />
+            </dashboard-tile>
 
         <!-- Wifi -->
         <dashboard-tile
@@ -30,21 +75,29 @@
                 android:icon="@drawable/ic_settings_wireless"
                 />
 
+        <!-- Tethering & portable hotspot -->
+        <dashboard-tile
+                android:id="@+id/tethering_settings"
+                android:key="tether_settings"
+                android:title="@string/tether_settings_title_all"
+                android:icon="@drawable/ic_settings_tethering"
+                android:fragment="com.android.settings.TetherSettings"
+                />
+
         <!-- Bluetooth -->
         <dashboard-tile
                 android:id="@+id/bluetooth_settings"
                 android:title="@string/bluetooth_settings_title"
                 android:fragment="com.android.settings.bluetooth.BluetoothSettings"
-                android:icon="@drawable/ic_settings_bluetooth2"
+                android:icon="@drawable/ic_settings_bluetooth"
                 />
 
-        <!-- Data Usage -->
+        <!-- Enable 4G -->
         <dashboard-tile
-                android:id="@+id/data_usage_settings"
-                android:title="@string/data_usage_summary_title"
-                android:fragment="com.android.settings.DataUsageSummary"
-                android:icon="@drawable/ic_settings_data_usage"
-                />
+               android:id="@+id/lte_4g_settings"
+               android:title="@string/lte_4g_settings_title"
+               android:icon="@drawable/ic_settings_4g"
+               />
 
         <!-- Operator hook -->
         <dashboard-tile
@@ -66,7 +119,16 @@
     <!-- DEVICE -->
     <dashboard-category
             android:id="@+id/device_section"
+            android:key="@string/category_key_device"
             android:title="@string/header_category_device" >
+
+        <!-- Global roaming settings - if RoamingSettings installed. -->
+        <dashboard-tile
+            android:id="@+id/global_roaming_settings"
+            android:icon="@drawable/ic_settings_roaming"
+            android:title="@string/label_global_roaming_settings">
+            <intent android:action="com.android.action.roamingsettings"/>
+        </dashboard-tile>
 
         <!-- Home -->
         <dashboard-tile
@@ -74,14 +136,6 @@
                 android:title="@string/home_settings"
                 android:fragment="com.android.settings.HomeSettings"
                 android:icon="@drawable/ic_settings_home"
-                />
-
-        <!-- Sound -->
-        <dashboard-tile
-                android:id="@+id/sound_settings"
-                android:title="@string/sound_settings"
-                android:fragment="com.android.settings.SoundSettings"
-                android:icon="@drawable/ic_settings_sound"
                 />
 
         <!-- Display -->
@@ -100,11 +154,18 @@
                 android:icon="@drawable/ic_settings_notifications"
                 />
 
+        <!-- Application Settings -->
+        <dashboard-tile
+                android:id="@+id/application_settings"
+                android:title="@string/applications_settings"
+                android:fragment="com.android.settings.applications.ManageApplications"
+                android:icon="@drawable/ic_settings_applications"
+                />
+
         <!-- Storage -->
         <dashboard-tile
                 android:id="@+id/storage_settings"
-                android:title="@string/storage_settings"
-                android:fragment="com.android.settings.deviceinfo.Memory"
+                android:title="@string/storage_usb_settings"
                 android:icon="@drawable/ic_settings_storage"
                 />
 
@@ -116,12 +177,12 @@
                 android:icon="@drawable/ic_settings_battery"
                 />
 
-        <!-- Application Settings -->
+        <!-- Memory -->
         <dashboard-tile
-                android:id="@+id/application_settings"
-                android:title="@string/applications_settings"
-                android:fragment="com.android.settings.applications.ManageApplications"
-                android:icon="@drawable/ic_settings_applications"
+                android:id="@+id/manage_memory"
+                android:title="@string/memory_settings_title"
+                android:fragment="com.android.settings.applications.ProcessStatsSummary"
+                android:icon="@drawable/ic_settings_memory"
                 />
 
         <!-- Manage users -->
@@ -152,7 +213,15 @@
     <!-- PERSONAL -->
     <dashboard-category
             android:id="@+id/personal_section"
+            android:key="@string/category_key_personal"
             android:title="@string/header_category_personal" >
+
+        <!-- Profiles -->
+        <dashboard-tile
+                android:id="@+id/profile_settings"
+                android:title="@string/profiles_settings_title"
+                android:icon="@drawable/ic_settings_profiles"
+                />
 
         <!-- Location -->
         <dashboard-tile
@@ -169,6 +238,17 @@
                 android:fragment="com.android.settings.SecuritySettings"
                 android:icon="@drawable/ic_settings_security"
                 />
+
+        <!-- Account -->
+        <dashboard-tile
+                android:id="@+id/account_settings"
+                android:title="@string/account_settings_title"
+                android:fragment="com.android.settings.accounts.AccountSettings"
+                android:icon="@drawable/ic_settings_accounts"
+                />
+
+        <!-- Marker for where to place external tiles in this category -->
+        <external-tiles />
 
         <!-- Language -->
         <dashboard-tile
@@ -188,32 +268,41 @@
 
     </dashboard-category>
 
-    <!--  ACCOUNTS section -->
-    <dashboard-category
-            android:id="@+id/account_settings"
-            android:title="@string/account_settings" >
-
-        <dashboard-tile
-                android:id="@+id/account_add"
-                android:title="@string/add_account_label"
-                android:icon="@drawable/ic_menu_add_dark">
-            <intent android:action="android.settings.ADD_ACCOUNT_SETTINGS"/>
-        </dashboard-tile>
-
-    </dashboard-category>
-
     <!-- SYSTEM -->
     <dashboard-category
         android:id="@+id/system_section"
+        android:key="@string/category_key_system"
         android:title="@string/header_category_system" >
+    <dashboard-tile
+                android:id="@+id/qtifeedback_settings"
+                android:title="@string/qtifeedback_settings_title"
+                android:summary="@string/qtifeedback_settings_subtitle"
+                android:icon="@drawable/ic_settings_qti_feedback">
+        <intent android:action="com.qti.smq.snapdragonSettings" />
+        </dashboard-tile>
 
-        <!-- Date & Time -->
+    <!-- System update settings - launches activity -->
+        <dashboard-tile
+                android:id="@+id/system_update_settings"
+                android:title="@string/system_update_settings_list_item_title"
+                android:summary="@string/system_update_settings_list_item_summary"
+                android:icon="@drawable/ic_settings_system_update">
+            <intent android:action="android.settings.SYSTEM_UPDATE_SETTINGS" />
+            </dashboard-tile>
+
+    <!-- Date & Time -->
         <dashboard-tile
                 android:id="@+id/date_time_settings"
                 android:title="@string/date_and_time_settings_title"
                 android:fragment="com.android.settings.DateTimeSettings"
                 android:icon="@drawable/ic_settings_date_time"
                 />
+
+        <!-- Scheduled power on&off -->
+        <dashboard-tile
+                android:id="@+id/timer_switch_settings"
+                android:title="@string/timer_switch_settings_title"
+                android:icon="@drawable/ic_settings_timerswitch" />
 
         <!-- Accessibility feedback -->
         <dashboard-tile
@@ -229,6 +318,14 @@
                 android:title="@string/print_settings"
                 android:fragment="com.android.settings.print.PrintSettingsFragment"
                 android:icon="@drawable/ic_settings_print"
+                />
+
+        <!-- Other phone-info and print and accessibility controls -->
+        <dashboard-tile
+                android:id="@+id/other_functions_settings"
+                android:title="@string/radio_controls_title"
+                android:fragment="com.android.settings.OtherDeviceFunctionsSettings"
+                android:icon="@drawable/ic_settings_more"
                 />
 
         <!-- Development -->

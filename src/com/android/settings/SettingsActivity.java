@@ -1068,7 +1068,11 @@ public class SettingsActivity extends Activity
      */
     private void buildDashboardCategories(List<DashboardCategory> categories) {
         categories.clear();
-        loadCategoriesFromResource(R.xml.dashboard_categories, categories, this);
+        if (getResources().getBoolean(R.bool.config_settings_design)) {
+            loadCategoriesFromResource(R.xml.dashboard_categories_rjil, categories, this);
+        } else {
+            loadCategoriesFromResource(R.xml.dashboard_categories, categories, this);
+        }
         updateTilesList(categories);
     }
 
@@ -1322,7 +1326,7 @@ public class SettingsActivity extends Activity
                 } else if (id == R.id.print_settings) {
                     boolean hasPrintingSupport = getPackageManager().hasSystemFeature(
                             PackageManager.FEATURE_PRINTING);
-                    if (!hasPrintingSupport || isShowSettingsDesign) {
+                    if (!hasPrintingSupport) {
                         removeTile = true;
                     }
                 } else if (id == R.id.development_settings) {
@@ -1348,11 +1352,8 @@ public class SettingsActivity extends Activity
                         tile.title = infos.get(0).activityInfo.loadLabel(getPackageManager());
                         tile.intent = intent;
                     }
-
-                } else if (id == R.id.accessibility_settings || id == R.id.about_settings) {
-                        removeTile = isShowSettingsDesign ;
                 } else if (id == R.id.other_functions_settings) {
-                        removeTile = !isShowSettingsDesign;
+                        removeTile = isShowSettingsDesign;
                 }
 
                 if (UserHandle.MU_ENABLED && UserHandle.myUserId() != 0
