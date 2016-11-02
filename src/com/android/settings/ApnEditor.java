@@ -96,6 +96,7 @@ public class ApnEditor extends InstrumentedPreferenceActivity
     private Cursor mCursor;
     private boolean mNewApn;
     private boolean mFirstTime;
+    private boolean mApnDisable = false;
     private int mSubId;
     private Resources mRes;
     private TelephonyManager mTelephonyManager;
@@ -205,10 +206,6 @@ public class ApnEditor extends InstrumentedPreferenceActivity
         mSubId = intent.getIntExtra(ApnSettings.SUB_ID,
                 SubscriptionManager.INVALID_SUBSCRIPTION_ID);
         mDisableEditor = intent.getBooleanExtra("DISABLE_EDITOR", false);
-        if (mDisableEditor) {
-            getPreferenceScreen().setEnabled(false);
-            Log.d(TAG, "ApnEditor form is disabled.");
-        }
 
         mFirstTime = icicle == null;
 
@@ -404,6 +401,24 @@ public class ApnEditor extends InstrumentedPreferenceActivity
         } else {
             mCarrierEnabled.setEnabled(false);
         }
+        String mccMnc = mMcc.getText() + mMnc.getText();
+        for (String plmn : getResources().getStringArray(R.array.plmn_list_for_apn_disable)) {
+            if (plmn.equals(mccMnc) && !mNewApn) {
+                mApnDisable = true;
+                Log.d(TAG, "APN is China Telecom's.");
+                break;
+            }
+        }
+
+        if (mDisableEditor) {
+            if (mApnDisable) {
+                mApn.setEnabled(false);
+                Log.d(TAG, "Apn Name can't be edited.");
+            } else {
+                getPreferenceScreen().setEnabled(false);
+                Log.d(TAG, "ApnEditor form is disabled.");
+            }
+        }
     }
 
     /**
@@ -543,7 +558,7 @@ public class ApnEditor extends InstrumentedPreferenceActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        if (mDisableEditor) {
+        if (mDisableEditor && !mApnDisable) {
             Log.d(TAG, "Form is disabled. Do not create the options menu.");
             return true;
         }
@@ -610,7 +625,7 @@ public class ApnEditor extends InstrumentedPreferenceActivity
     private boolean validateAndSave(boolean force) {
 
         // If the form is not editable, do nothing and return.
-        if (mDisableEditor){
+        if (mDisableEditor && !mApnDisable){
             Log.d(TAG, "Form is disabled. Nothing to save.");
             return true;
         }
