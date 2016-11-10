@@ -53,6 +53,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.Toast;
 
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.telephony.OperatorSimInfo;
@@ -88,6 +89,10 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     private static final String SIM_ACTIVITIES_CATEGORY = "sim_activities";
     private static final String KEY_PRIMARY_SUB_SELECT = "select_primary_sub";
     private static final String CARRIER_MODE_CT_CLASS_A = "ct_class_a";
+
+    // subsidy lock status for lock screen
+    private static final int SUBSIDY_RESTRICTED = 103;
+    private static final String SUBSIDY_LOCK_SETTINGS = "subsidy_status";
 
     private IExtTelephony mExtTelephony = IExtTelephony.Stub.
             asInterface(ServiceManager.getService("extphone"));
@@ -307,7 +312,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                 TelephonyProperties.PROPERTY_INECM_MODE, false);
         // Enable data preference in msim mode and call state idle
         simPref.setEnabled((mSelectableSubInfos.size() > 1) && !disableDds()
-                && callStateIdle && !ecbMode);
+                && callStateIdle && !ecbMode && !isSubsidyRestricted());
     }
 
     private void updateCallValues() {
@@ -481,7 +486,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         private static final int GENERIC_FAILURE = -1;
         private static final int INVALID_INPUT = -2;
         private static final int REQUEST_IN_PROGRESS = -3;
-
+        private static final int REQUEST_NOT_ALLOWED = -4;
 
 
         private static final String DISPLAY_NUMBERS_TYPE = "display_numbers_type";
@@ -906,14 +911,18 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                     switch(msg.what) {
                         case EVT_UPDATE:
                             simEnablerUpdate();
-
+                            break;
                         case EVT_SHOW_RESULT_DLG:
                             int result = msg.arg1;
                             int newProvisionedState = msg.arg2;
                             logd("EVT_SHOW_RESULT_DLG result: " + result +
                                     " new provisioned state " + newProvisionedState);
                             update();
-                            if (result != REQUEST_SUCCESS) {
+                            if (result == REQUEST_NOT_ALLOWED) {
+                                cleanUpPendingDialogs();
+                                Toast.makeText(mContext, getResources().getString(
+                                        R.string.action_not_allowed), Toast.LENGTH_SHORT).show();
+                            } else if (result != REQUEST_SUCCESS) {
                                 int msgId = (newProvisionedState == PROVISIONED) ?
                                         R.string.sub_activate_failed :
                                         R.string.sub_deactivate_failed;
@@ -1117,8 +1126,15 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                     CONFIG_LTE_SUB_SELECT_MODE, 1) == 0;
             log("updatePrimarySub isManualMode :" + isManualMode);
             mPrimarySubSelect.setEnabled(isManualMode && mSelectableSubInfos.size() > 1 &&
-                    isCallStateIdle() && !mIsAirplaneModeOn);
+                    isCallStateIdle() && !mIsAirplaneModeOn && !isSubsidyRestricted());
         }
+    }
+
+    private boolean isSubsidyRestricted() {
+        boolean subsidyLocked = Settings.Secure.getInt(
+                mContext.getContentResolver(),
+                SUBSIDY_LOCK_SETTINGS, -1) == SUBSIDY_RESTRICTED;// not in NONE state
+        return subsidyLocked;
     }
 
     private boolean isCallStateIdle() {
