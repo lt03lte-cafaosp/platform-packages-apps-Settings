@@ -43,7 +43,9 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         android:textSize="@dimen/dialog_font_choose_title_textsize"
         android:textStyle="bold" />
 
-
+    <ScrollView
+        android:layout_height="match_parent"
+        android:layout_width="match_parent">
     <RadioGroup
         android:id="@+id/font_choose"
         android:layout_width="match_parent"
@@ -100,5 +102,5 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             android:textSize="19dip" />
 
     </RadioGroup>
-
+    </ScrollView>
 </LinearLayout>
