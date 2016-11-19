@@ -131,6 +131,9 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     private static final String CONFIG_LTE_SUB_SELECT_MODE = "config_lte_sub_select_mode";
     private static final String CONFIG_PRIMARY_SUB_SETABLE = "config_primary_sub_setable";
     private static final String CONFIG_CURRENT_PRIMARY_SUB = "config_current_primary_sub";
+    private static final String CONFIG_MANUAL_SUB_SELECT_REQUIRED =
+            "config_manual_sub_select_required";
+
     // If this config set to '1' DDS option would be greyed out on UI.
     // For more info pls refere framework code.
     private static final String CONFIG_DISABLE_DDS_PREFERENCE = "config_disable_dds_preference";
@@ -313,6 +316,11 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         // Enable data preference in msim mode and call state idle
         simPref.setEnabled((mSelectableSubInfos.size() > 1) && !disableDds()
                 && callStateIdle && !ecbMode && !isSubsidyRestricted());
+    }
+
+    private boolean isManualSubSelectRequired(){
+        return android.provider.Settings.Global.getInt(mContext.getContentResolver(),
+                CONFIG_MANUAL_SUB_SELECT_REQUIRED, 0) == 1;
     }
 
     private void updateCallValues() {
@@ -1125,8 +1133,10 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
             boolean isManualMode = Settings.Global.getInt(mContext.getContentResolver(),
                     CONFIG_LTE_SUB_SELECT_MODE, 1) == 0;
             log("updatePrimarySub isManualMode :" + isManualMode);
-            mPrimarySubSelect.setEnabled(isManualMode && mSelectableSubInfos.size() > 1 &&
-                    isCallStateIdle() && !mIsAirplaneModeOn && !isSubsidyRestricted());
+            mPrimarySubSelect.setEnabled(isManualMode
+                    && mSelectableSubInfos.size() > 1 && isCallStateIdle()
+                    && !mIsAirplaneModeOn
+                    && (isManualSubSelectRequired() || !isSubsidyRestricted()));
         }
     }
 
