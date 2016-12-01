@@ -26,14 +26,20 @@ import android.os.Bundle;
 import android.preference.PreferenceFragment;
 
 public class WifiSubsidyLockActivity extends WifiSetupActivity {
+    private StatusBarManager mStatusBarManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        StatusBarManager statusBarManager = (StatusBarManager)
+        mStatusBarManager = (StatusBarManager)
             this.getSystemService(Context.STATUS_BAR_SERVICE);
-        if(null != statusBarManager) {
-            statusBarManager.disable(StatusBarManager.DISABLE_EXPAND);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (null != mStatusBarManager) {
+            mStatusBarManager.disable(StatusBarManager.DISABLE_EXPAND);
         }
     }
 
@@ -45,5 +51,13 @@ public class WifiSubsidyLockActivity extends WifiSetupActivity {
     @Override
     /* package */Class<? extends PreferenceFragment> getWifiSettingsClass() {
         return WifiSettingsForSubsidyLock.class;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (null != mStatusBarManager) {
+            mStatusBarManager.disable(StatusBarManager.DISABLE_NONE);
+        }
     }
 }
