@@ -244,7 +244,7 @@
         android:title="@string/date_and_time_settings_title" />
 
     <!-- Scheduled power on and off -->
-    <header
+   <!--  <header
         android:id="@+id/timer_switch_settings"
         android:icon="@drawable/ic_settings_timerswitch"
         android:title="@string/timer_switch_settings_title" >
@@ -252,7 +252,7 @@
             android:action="android.intent.action.MAIN"
             android:targetPackage="com.android.timerswitch"
             android:targetClass="com.android.timerswitch.TimerSwitchSettings" />
-    </header>
+    </header> -->
 
     <!-- Accessibility feedback -->
     <header
