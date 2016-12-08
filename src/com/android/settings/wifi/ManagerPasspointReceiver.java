@@ -72,11 +72,13 @@ public class ManagerPasspointReceiver extends BroadcastReceiver {
         List<WifiConfiguration> configList = mWifiManager.getConfiguredNetworks();
         WifiConfiguration config = null;
 
-        for (WifiConfiguration c : configList) {
-            if (c.isPasspoint() && c.FQDN.equals(
-                    context.getResources().getString(R.string.passpoint_fqdn))) {
-                config = c;
-                break;
+        if (configList != null) {
+            for (WifiConfiguration c : configList) {
+                if (c.isPasspoint() && c.FQDN.equals(
+                        context.getResources().getString(R.string.passpoint_fqdn))) {
+                    config = c;
+                    break;
+                }
             }
         }
 
