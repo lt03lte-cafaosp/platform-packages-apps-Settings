@@ -68,6 +68,7 @@ import com.android.internal.telephony.TelephonyProperties;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class SimSettings extends RestrictedSettingsFragment implements Indexable {
     private static final String TAG = "SimSettings";
@@ -91,8 +92,11 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     private static final String CARRIER_MODE_CT_CLASS_A = "ct_class_a";
 
     // subsidy lock status for lock screen
+    private static final int SUBSIDYLOCK_LOCKED = 102;
     private static final int SUBSIDY_RESTRICTED = 103;
     private static final String SUBSIDY_LOCK_SETTINGS = "subsidy_status";
+    private static final String SUBSIDY_LOCK_SYSTEM_PROPERY
+            = "persist.radio.subsidylock";
 
     private IExtTelephony mExtTelephony = IExtTelephony.Stub.
             asInterface(ServiceManager.getService("extphone"));
@@ -566,6 +570,11 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
             // device is in Airplane mode.
             if (mIsAirplaneModeOn || (!isCurrentSubValid())) {
                 mSwitch.setEnabled(false);
+            } else if (isSubSidyLockFeatureEnabled() && isCurrentSubValid()) {
+                boolean isSubsidyRestricted  = isSubsidyRestricted();
+                boolean isWhiteListed = isWhiteListed(
+                        String.valueOf(mSir.getMcc()), String.valueOf(mSir.getMnc()));
+                mSwitch.setEnabled(isSubsidyRestricted && !isWhiteListed);
             } else {
                 mSwitch.setEnabled(true);
             }
@@ -588,7 +597,14 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
             }
 
             boolean isSubValid = isCurrentSubValid();
-            setEnabled(isSubValid);
+            boolean enable = true;
+            if (isSubSidyLockFeatureEnabled() && isSubValid) {
+                boolean isSubsidyRestricted  = isSubsidyRestricted();
+                boolean isWhiteListed = isWhiteListed(
+                        String.valueOf(mSir.getMcc()), String.valueOf(mSir.getMnc()));
+                enable = isSubsidyRestricted && !isWhiteListed;
+            }
+            setEnabled(isSubValid && enable);
 
             logd("update: isSubValid "  + isSubValid + " provision status["
                     + mSlotId + "] = " + mUiccProvisionStatus[mSlotId]);
@@ -1141,10 +1157,39 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     }
 
     private boolean isSubsidyRestricted() {
-        boolean subsidyLocked = Settings.Secure.getInt(
+        int subsidyStatus  = Settings.Secure.getInt(
                 mContext.getContentResolver(),
-                SUBSIDY_LOCK_SETTINGS, -1) == SUBSIDY_RESTRICTED;// not in NONE state
+                SUBSIDY_LOCK_SETTINGS, SUBSIDYLOCK_LOCKED);
+        boolean subsidyLocked = (subsidyStatus == SUBSIDYLOCK_LOCKED)
+                || (subsidyStatus == SUBSIDY_RESTRICTED);
         return subsidyLocked;
+    }
+
+    public static boolean isSubSidyLockFeatureEnabled() {
+        int prop = SystemProperties.getInt(SUBSIDY_LOCK_SYSTEM_PROPERY, 0);
+        return (prop == 1);
+    }
+
+    private boolean isWhiteListed(String mcc, String mnc) {
+        boolean mccAllowed = false;
+        boolean mncAllowed = false;
+        String[] mccWhiteList = mContext.getResources()
+                .getStringArray(R.array.mccs_white_listed);
+        String[] mncsWhiteList = mContext.getResources()
+                .getStringArray(R.array.mncs_white_listed);
+        for (String mccRegEx : mccWhiteList) {
+            mccAllowed |= Pattern.compile(mccRegEx).matcher(mcc).matches();
+            if (mccAllowed) {
+                break;
+            }
+        }
+        for (String mncRegEx : mncsWhiteList) {
+            mncAllowed |= Pattern.compile(mncRegEx).matcher(mnc).matches();
+            if (mncAllowed) {
+                break;
+            }
+        }
+        return mccAllowed && mncAllowed;
     }
 
     private boolean isCallStateIdle() {
