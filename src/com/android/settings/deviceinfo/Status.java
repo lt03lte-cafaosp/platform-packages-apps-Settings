@@ -476,6 +476,7 @@ public class Status extends PreferenceActivity {
             if ((ServiceState.STATE_OUT_OF_SERVICE == state) ||
                     (ServiceState.STATE_POWER_OFF == state)) {
                 mSignalStrength.setSummary("0");
+                return;
             }
 
             int signalDbm = mPhoneStateReceiver.getSignalStrengthDbm();
