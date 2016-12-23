@@ -1148,11 +1148,12 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         if (!mPrimaryPrefRemoved) {
             boolean isManualMode = Settings.Global.getInt(mContext.getContentResolver(),
                     CONFIG_LTE_SUB_SELECT_MODE, 1) == 0;
-            log("updatePrimarySub isManualMode :" + isManualMode);
             mPrimarySubSelect.setEnabled(isManualMode
                     && mSelectableSubInfos.size() > 1 && isCallStateIdle()
                     && !mIsAirplaneModeOn
                     && (isManualSubSelectRequired() || !isSubsidyRestricted()));
+            log("updatePrimarySub isManualMode :" + isManualMode +
+                    " isSubsidyRestricted  " + isSubsidyRestricted());
         }
     }
 
@@ -1162,7 +1163,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                 SUBSIDY_LOCK_SETTINGS, SUBSIDYLOCK_LOCKED);
         boolean subsidyLocked = (subsidyStatus == SUBSIDYLOCK_LOCKED)
                 || (subsidyStatus == SUBSIDY_RESTRICTED);
-        return subsidyLocked;
+        return isSubSidyLockFeatureEnabled() && subsidyLocked;
     }
 
     public static boolean isSubSidyLockFeatureEnabled() {
