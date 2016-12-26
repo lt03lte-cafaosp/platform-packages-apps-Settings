@@ -1096,7 +1096,8 @@
     <string-array name="show_account_list">
         <item>com.android.exchange</item>
         <item>com.google</item>
-        <item>com.android.email</item>
+        <item>com.android.email.legacy.imap</item>
+        <item>com.android.email.pop3</item>
     </string-array>
 
     <string-array name="plmn_list_for_apn_disable">
@@ -1109,4 +1110,19 @@
         <item>46011</item>
         <item>46012</item>
     </string-array>
+
+    <!-- Automatic storage management settings. The amount of days for the automatic storage manager
+         to retain. These are shown in a list dialog. [CHAR LIMIT=70] -->
+    <string-array name="automatic_storage_management_days">
+        <item>Over 30 days old</item>
+        <item>Over 60 days old</item>
+        <item>Over 90 days old</item>
+    </string-array>
+
+    <string-array name="automatic_storage_management_days_values" translatable="false">
+        <item>30</item>
+        <item>60</item>
+        <item>90</item>
+    </string-array>
+
 </resources>
