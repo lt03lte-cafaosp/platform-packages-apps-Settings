@@ -574,7 +574,8 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                 boolean isSubsidyRestricted  = isSubsidyRestricted();
                 boolean isWhiteListed = isWhiteListed(
                         String.valueOf(mSir.getMcc()), String.valueOf(mSir.getMnc()));
-                mSwitch.setEnabled(isSubsidyRestricted && !isWhiteListed);
+                mSwitch.setEnabled((isSubsidyRestricted && !isWhiteListed)
+                        || !isSubsidyRestricted);
             } else {
                 mSwitch.setEnabled(true);
             }
@@ -602,7 +603,8 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                 boolean isSubsidyRestricted  = isSubsidyRestricted();
                 boolean isWhiteListed = isWhiteListed(
                         String.valueOf(mSir.getMcc()), String.valueOf(mSir.getMnc()));
-                enable = isSubsidyRestricted && !isWhiteListed;
+                enable = (isSubsidyRestricted && !isWhiteListed)
+                        || !isSubsidyRestricted;
             }
             setEnabled(isSubValid && enable);
 
