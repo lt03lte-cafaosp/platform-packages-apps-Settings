@@ -66,6 +66,8 @@ import com.android.settings.search.Indexable;
 import com.android.settingslib.RestrictedLockUtils;
 import com.android.settingslib.RestrictedPreference;
 
+import com.elixir.settings.preferences.CustomSeekBarPreference;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,6 +111,8 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
 
     private static final String KEY_WALLPAPER = "wallpaper";
     private static final String KEY_VR_DISPLAY_PREF = "vr_display_pref";
+    private static final String KEY_BACKLIGHT_TIMEOUT = "backlight_timeout";
+    private static final String KEY_BUTTON_BRIGHTNESS = "button_brightness";
 
     private static final int DLG_FONTSIZE_CHANGE_WARNING = 2;
 
@@ -142,6 +146,8 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
     private SharedPreferences.Editor mEditor;
     private boolean isRJILMode;
     private final Configuration mCurConfig = new Configuration();
+    private CustomSeekBarPreference mButtonBrightness;
+    private ListPreference mBacklightTimeout;
 
     @Override
     protected int getMetricsCategory() {
@@ -178,6 +184,12 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             removePreference(KEY_FONT_SIZE_MODE);
             mFontSizePref = findPreference(KEY_FONT_SIZE);
         }
+        
+         mBacklightTimeout =
+                (ListPreference) findPreference(KEY_BACKLIGHT_TIMEOUT);
+                
+        mButtonBrightness =
+                (CustomSeekBarPreference) findPreference(KEY_BUTTON_BRIGHTNESS);
 
         if (isAutomaticBrightnessAvailable(getResources())) {
             mAutoBrightnessPreference = (SwitchPreference) findPreference(KEY_AUTO_BRIGHTNESS);
@@ -267,6 +279,22 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
         } else {
             removePreference(KEY_AUTO_ROTATE);
         }
+        
+            if (mBacklightTimeout != null) {
+        	mBacklightTimeout.setOnPreferenceChangeListener(this);
+        	int BacklightTimeout = Settings.System.getInt(getContentResolver(),
+                	Settings.System.BUTTON_BACKLIGHT_TIMEOUT, 5000);
+        	mBacklightTimeout.setValue(Integer.toString(BacklightTimeout));
+        	mBacklightTimeout.setSummary(mBacklightTimeout.getEntry());
+            }
+
+            if (mButtonBrightness != null) {
+                int ButtonBrightness = Settings.System.getInt(resolver,
+                                Settings.System.BUTTON_BRIGHTNESS, 255);
+                mButtonBrightness.setValue(ButtonBrightness / 1);
+                mButtonBrightness.setOnPreferenceChangeListener(this);
+
+            }
 
         if (isVrDisplayModeAvailable(activity)) {
             DropDownPreference vrDisplayPref =
@@ -574,6 +602,23 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             Settings.Secure.putInt(getContentResolver(), CAMERA_GESTURE_DISABLED,
                     value ? 0 : 1 /* Backwards because setting is for disabling */);
         }
+         if (preference == mBacklightTimeout) {
+            String BacklightTimeout = (String) objValue;
+            int BacklightTimeoutValue = Integer.parseInt(BacklightTimeout);
+            Settings.System.putInt(getActivity().getContentResolver(),
+                    Settings.System.BUTTON_BACKLIGHT_TIMEOUT, BacklightTimeoutValue);
+            int BacklightTimeoutIndex = mBacklightTimeout
+                    .findIndexOfValue(BacklightTimeout);
+            mBacklightTimeout
+                    .setSummary(mBacklightTimeout.getEntries()[BacklightTimeoutIndex]);
+            return true;
+         } 
+         
+         if (preference == mButtonBrightness) {
+            int value = (Integer) objValue;
+            Settings.System.putInt(getActivity().getContentResolver(),
+                    Settings.System.BUTTON_BRIGHTNESS, value * 1);
+         }
         if (preference == mNightModePreference) {
             try {
                 final int value = Integer.parseInt((String) objValue);
