@@ -96,7 +96,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     private static final int SUBSIDY_RESTRICTED = 103;
     private static final String SUBSIDY_LOCK_SETTINGS = "subsidy_status";
     private static final String SUBSIDY_LOCK_SYSTEM_PROPERY
-            = "persist.radio.subsidylock";
+            = "ro.radio.subsidylock";
 
     private IExtTelephony mExtTelephony = IExtTelephony.Stub.
             asInterface(ServiceManager.getService("extphone"));
