@@ -25,6 +25,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -97,6 +98,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     private static final String SUBSIDY_LOCK_SETTINGS = "subsidy_status";
     private static final String SUBSIDY_LOCK_SYSTEM_PROPERY
             = "ro.radio.subsidylock";
+    private SubsidySettingsObserver mSubsidySettingsObserver;
 
     private IExtTelephony mExtTelephony = IExtTelephony.Stub.
             asInterface(ServiceManager.getService("extphone"));
@@ -175,13 +177,42 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         intentFilter.addAction(ACTION_OUTGOING_PHONE_ACCOUNT_CHANGED);
         intentFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
         mContext.registerReceiver(mReceiver, intentFilter);
+        if (isSubSidyLockFeatureEnabled()) {
+            mSubsidySettingsObserver = new SubsidySettingsObserver();
+            getContentResolver().registerContentObserver(
+                    Settings.Secure.getUriFor(SUBSIDY_LOCK_SETTINGS),
+                    false, mSubsidySettingsObserver);
+        }
     }
+
+    private class SubsidySettingsObserver extends ContentObserver {
+
+        public SubsidySettingsObserver() {
+            super(null);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            mSubsidySettingsHandler.sendEmptyMessage(0);
+        }
+    }
+
+    private Handler mSubsidySettingsHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            updateSubscriptions();
+            updatePrimarySub();
+            updateCellularDataValues();
+        }
+    };
 
     @Override
     public void onDestroy() {
         mContext.unregisterReceiver(mReceiver);
         Log.d(TAG,"on onDestroy");
         super.onDestroy();
+        if (mSubsidySettingsObserver != null) {
+            getContentResolver().unregisterContentObserver(mSubsidySettingsObserver);
+        }
     }
 
     private final SubscriptionManager.OnSubscriptionsChangedListener mOnSubscriptionsChangeListener
@@ -1163,8 +1194,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
         int subsidyStatus  = Settings.Secure.getInt(
                 mContext.getContentResolver(),
                 SUBSIDY_LOCK_SETTINGS, SUBSIDYLOCK_LOCKED);
-        boolean subsidyLocked = (subsidyStatus == SUBSIDYLOCK_LOCKED)
-                || (subsidyStatus == SUBSIDY_RESTRICTED);
+        boolean subsidyLocked = (subsidyStatus == SUBSIDY_RESTRICTED);
         return isSubSidyLockFeatureEnabled() && subsidyLocked;
     }
 
