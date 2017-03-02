@@ -353,9 +353,26 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
                 && callStateIdle && !ecbMode && !isSubsidyRestricted());
     }
 
-    private boolean isManualSubSelectRequired(){
-        return android.provider.Settings.Global.getInt(mContext.getContentResolver(),
-                CONFIG_MANUAL_SUB_SELECT_REQUIRED, 0) == 1;
+    private boolean isManualSubSelectRequired() {
+        if (!isSubSidyLockFeatureEnabled()) {
+            return true;
+        }
+        boolean required = false;
+        int whiteListedCount = 0;
+        for (int i = 0; i < mNumSlots; ++i) {
+            final SubscriptionInfo sir = mSubscriptionManager
+                    .getActiveSubscriptionInfoForSimSlotIndex(i);
+            if (sir == null) {
+                break;
+            }
+            if (isWhiteListed(String.valueOf(sir.getMcc()), String.valueOf(sir.getMnc()))) {
+                whiteListedCount = whiteListedCount + 1;
+            }
+        }
+        if (whiteListedCount > 1) {
+            required = true;
+        }
+        return required;
     }
 
     private void updateCallValues() {
