@@ -691,6 +691,7 @@ public class ApnEditor extends InstrumentedPreferenceActivity
             return false;
         }
 
+        String subid = Integer.toString(mSubId);
         ContentValues values = new ContentValues();
 
         // Add a dummy name "Untitled", if the user exits the screen without adding a name but
@@ -698,6 +699,7 @@ public class ApnEditor extends InstrumentedPreferenceActivity
         values.put(Telephony.Carriers.NAME,
                 name.length() < 1 ? getResources().getString(R.string.untitled_apn) : name);
         values.put(Telephony.Carriers.APN, apn);
+        values.put(Telephony.Carriers.SUBSCRIPTION_ID, subid);
         values.put(Telephony.Carriers.PROXY, checkNotSet(mProxy.getText()));
         values.put(Telephony.Carriers.PORT, checkNotSet(mPort.getText()));
         values.put(Telephony.Carriers.MMSPROXY, checkNotSet(mMmsProxy.getText()));
