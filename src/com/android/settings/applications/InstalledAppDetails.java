@@ -19,6 +19,7 @@ package com.android.settings.applications;
 import android.Manifest.permission;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.ActivityManager.AppTask;
 import android.app.AlertDialog;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.app.Notification;
@@ -102,7 +103,6 @@ import com.android.settingslib.net.ChartDataLoader;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -185,7 +185,7 @@ public class InstalledAppDetails extends AppInfoBase
         // by not allowing disabling of apps signed with the
         // system cert and any launcher app in the system.
         if (mHomePackages.contains(mAppEntry.info.packageName)
-                || Utils.isSystemPackage(mPm, mPackageInfo)) {
+                || Utils.isSystemPackage(getContext().getResources(), mPm, mPackageInfo)) {
             // Disable button for core system applications.
             button.setText(R.string.disable_text);
         } else if (mAppEntry.info.enabled && !isDisabledUntilUsed()) {
@@ -228,6 +228,11 @@ public class InstalledAppDetails extends AppInfoBase
         // "uninstall" is actually "downgrade to the system version + disable", and "downgrade"
         // will clear data on all users.
         if (isProfileOrDeviceOwner(mPackageInfo.packageName)) {
+            enabled = false;
+        }
+
+        // Don't allow uninstalling the device provisioning package.
+        if (Utils.isDeviceProvisioningPackage(getResources(), mAppEntry.info.packageName)) {
             enabled = false;
         }
 
@@ -479,21 +484,22 @@ public class InstalledAppDetails extends AppInfoBase
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_UNINSTALL) {
-            if (mDisableAfterUninstall) {
-                mDisableAfterUninstall = false;
-                new DisableChanger(this, mAppEntry.info,
-                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER)
-                        .execute((Object)null);
-            }
-            if (!refreshUi()) {
-                setIntentAndFinish(true, true);
-            }
-        }
-        if (requestCode == REQUEST_REMOVE_DEVICE_ADMIN) {
-            if (!refreshUi()) {
-                setIntentAndFinish(true, true);
-            }
+        switch (requestCode) {
+            case REQUEST_UNINSTALL:
+                if (mDisableAfterUninstall) {
+                    mDisableAfterUninstall = false;
+                    new DisableChanger(this, mAppEntry.info,
+                            PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER)
+                            .execute((Object)null);
+                }
+                // continue with following operations
+            case REQUEST_REMOVE_DEVICE_ADMIN:
+                if (!refreshUi()) {
+                    setIntentAndFinish(true, true);
+                } else {
+                    startListeningToPackageRemove();
+                }
+                break;
         }
     }
 
@@ -671,6 +677,7 @@ public class InstalledAppDetails extends AppInfoBase
     }
 
     private void uninstallPkg(String packageName, boolean allUsers, boolean andDisable) {
+        stopListeningToPackageRemove();
          // Create new intent to launch Uninstaller activity
         Uri packageURI = Uri.parse("package:"+packageName);
         Intent uninstallIntent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, packageURI);
@@ -682,6 +689,14 @@ public class InstalledAppDetails extends AppInfoBase
     private void forceStopPackage(String pkgName) {
         ActivityManager am = (ActivityManager) getActivity().getSystemService(
                 Context.ACTIVITY_SERVICE);
+        if(pkgName.equals(getActivity().getPackageName())){
+            List<AppTask> list = am.getAppTasks();
+            if(list != null){
+                for(AppTask appTask : list){
+                    appTask.finishAndRemoveTask();
+                }
+           }
+        }
         am.forceStopPackage(pkgName);
         int userId = UserHandle.getUserId(mAppEntry.info.uid);
         mState.invalidatePackage(pkgName, userId);
@@ -726,7 +741,7 @@ public class InstalledAppDetails extends AppInfoBase
         intent.putExtra(Intent.EXTRA_PACKAGE_NAME, mAppEntry.info.packageName);
         intent.putExtra(AppHeader.EXTRA_HIDE_INFO_BUTTON, true);
         try {
-            startActivity(intent);
+            getActivity().startActivityForResult(intent, SUB_INFO_FRAGMENT);
         } catch (ActivityNotFoundException e) {
             Log.w(LOG_TAG, "No app can handle android.intent.action.MANAGE_APP_PERMISSIONS");
         }
@@ -760,6 +775,7 @@ public class InstalledAppDetails extends AppInfoBase
         String packageName = mAppEntry.info.packageName;
         if (v == mUninstallButton) {
             if (mDpm.packageHasActiveAdmins(mPackageInfo.packageName)) {
+                stopListeningToPackageRemove();
                 Activity activity = getActivity();
                 Intent uninstallDAIntent = new Intent(activity, DeviceAdminAdd.class);
                 uninstallDAIntent.putExtra(DeviceAdminAdd.EXTRA_DEVICE_ADMIN_PACKAGE_NAME,
@@ -1071,6 +1087,12 @@ public class InstalledAppDetails extends AppInfoBase
             summary.append(summaryAttributes.get(i));
         }
         return summary.toString();
+    }
+
+    @Override
+    protected void onPackageRemoved() {
+        getActivity().finishActivity(SUB_INFO_FRAGMENT);
+        super.onPackageRemoved();
     }
 
     private class MemoryUpdater extends AsyncTask<Void, Void, ProcStatsPackageEntry> {

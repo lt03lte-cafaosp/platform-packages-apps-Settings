@@ -60,7 +60,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
@@ -177,8 +176,8 @@ public class Index {
         public List<SearchIndexableData> dataToDelete;
         public Map<String, List<String>> nonIndexableKeys;
 
-        public boolean forceUpdate = false;
-        public boolean fullIndex = true;
+        public boolean forceUpdate;
+        public boolean fullIndex;
 
         public UpdateData() {
             dataToUpdate = new ArrayList<SearchIndexableData>();
@@ -288,18 +287,9 @@ public class Index {
         return sb.toString();
     }
 
-    public long addSavedQuery(String query){
+    public void addSavedQuery(String query){
         final SaveSearchQueryTask task = new SaveSearchQueryTask();
         task.execute(query);
-        try {
-            return task.get();
-        } catch (InterruptedException e) {
-            Log.e(LOG_TAG, "Cannot insert saved query: " + query, e);
-            return -1 ;
-        } catch (ExecutionException e) {
-            Log.e(LOG_TAG, "Cannot insert saved query: " + query, e);
-            return -1;
-        }
     }
 
     public void update() {
@@ -1164,17 +1154,6 @@ public class Index {
         }
         return result.toString();
     }
-
-    private int getResId(Context context, AttributeSet set, int[] attrs, int resId) {
-        final TypedArray sa = context.obtainStyledAttributes(set, attrs);
-        final TypedValue tv = sa.peekValue(resId);
-
-        if (tv != null && tv.type == TypedValue.TYPE_STRING) {
-            return tv.resourceId;
-        } else {
-            return 0;
-        }
-   }
 
     /**
      * A private class for updating the Index database

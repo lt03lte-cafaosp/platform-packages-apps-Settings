@@ -111,7 +111,7 @@ public class UsbModeChooserActivity extends Activity {
         int current = mBackend.getCurrentMode();
         int dataTetherMode = UsbBackend.MODE_POWER_SINK | UsbBackend.MODE_DATA_TETHERING;
         for (int i = 0; i < DEFAULT_MODES.length; i++) {
-            if (mBackend.isModeSupported(DEFAULT_MODES[i])
+            if (mBackend.isCurrentModeSupported(DEFAULT_MODES[i])
                     && !mBackend.isModeDisallowedBySystem(DEFAULT_MODES[i])) {
                 if (getResources().getBoolean(
                         R.bool.config_regional_usb_tethering_quick_start_enable)
@@ -138,10 +138,12 @@ public class UsbModeChooserActivity extends Activity {
 
     private void inflateOption(final int mode, boolean selected, LinearLayout container,
             final boolean disallowedByAdmin) {
+        /** UsbSecurity is disable
         boolean isSimCardInserted = SystemProperties.getBoolean(
             "persist.sys.sim.activate", false);
         boolean isUsbSecurityEnable = SystemProperties.getBoolean(
             "persist.sys.usb.security", false);
+        **/
 
         View v = mLayoutInflater.inflate(R.layout.restricted_radio_with_summary, container, false);
 
@@ -174,10 +176,11 @@ public class UsbModeChooserActivity extends Activity {
             }
         });
         ((Checkable) v).setChecked(selected);
+        /** UsbSecurity is disable
         if( !isSimCardInserted && isUsbSecurityEnable )
         {
             v.setEnabled(selected);
-        }
+        }**/
         container.addView(v);
     }
 

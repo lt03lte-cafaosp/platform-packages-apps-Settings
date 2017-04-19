@@ -16,9 +16,6 @@
 
 package com.android.settings.deviceinfo;
 
-import static android.content.Context.CARRIER_CONFIG_SERVICE;
-import static android.content.Context.TELEPHONY_SERVICE;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -33,7 +30,6 @@ import android.os.UserManager;
 import android.support.v7.preference.Preference;
 import android.telephony.CarrierConfigManager;
 import android.telephony.CellBroadcastMessage;
-import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
@@ -59,9 +55,13 @@ import com.android.internal.telephony.PhoneFactory;
 import com.android.settings.R;
 import com.android.settings.SettingsPreferenceFragment;
 import com.android.settings.Utils;
+import com.android.settingslib.DeviceInfoUtils;
 
 import java.util.List;
 
+import org.codeaurora.ims.utils.QtiImsExtUtils;
+import static android.content.Context.CARRIER_CONFIG_SERVICE;
+import static android.content.Context.TELEPHONY_SERVICE;
 
 /**
  * Display the following information
@@ -129,7 +129,8 @@ public class SimStatus extends SettingsPreferenceFragment {
                     return;
                 }
                 CellBroadcastMessage cbMessage = (CellBroadcastMessage) extras.get("message");
-                if (cbMessage != null && cbMessage.getServiceCategory() == 50) {
+                if (cbMessage != null && cbMessage.getServiceCategory() == 50
+                        && mSir.getSubscriptionId() == cbMessage.getSubId()) {
                     String latestAreaInfo = cbMessage.getMessageBody();
                     updateAreaInfo(latestAreaInfo);
                 }
@@ -288,12 +289,10 @@ public class SimStatus extends SettingsPreferenceFragment {
             networktype = "4G";
         }
 
-        String property = SystemProperties.get("persist.radio.atel.carrier");
-        boolean isCarrierOneSupported = "405854".equals(property);
-        if (isCarrierOneSupported) {
+        if (QtiImsExtUtils.isCarrierOneSupported()) {
             if (TelephonyManager.NETWORK_TYPE_LTE == actualDataNetworkType ||
                     TelephonyManager.NETWORK_TYPE_LTE == actualVoiceNetworkType) {
-                if (mTelephonyManager.isImsRegistered()) {
+                if (mTelephonyManager.isImsRegisteredForSubscriber(subId)) {
                     networktype = getResources().
                             getString(R.string.lte_data_and_voice_calling_enabled);
                 } else {
@@ -329,29 +328,20 @@ public class SimStatus extends SettingsPreferenceFragment {
     }
 
     private void updateServiceState(ServiceState serviceState) {
-        final int state = serviceState.getState();
-        String display = mRes.getString(R.string.radioInfo_unknown);
+        final int voiceState = serviceState.getState();
+        final int dataState = mPhone.getServiceState().getDataRegState();
 
-        switch (state) {
-            case ServiceState.STATE_IN_SERVICE:
-                display = mRes.getString(R.string.radioInfo_service_in);
-                break;
-            case ServiceState.STATE_OUT_OF_SERVICE:
-                // Set signal strength to 0 when service state is STATE_OUT_OF_SERVICE
+        // Set signal strength to 0 when service state is
+        // STATE_OUT_OF_SERVICE or STATE_POWER_OFF
+        if ((ServiceState.STATE_OUT_OF_SERVICE == voiceState) ||
+                    (ServiceState.STATE_POWER_OFF == voiceState)) {
                 mSignalStrength.setSummary("0");
-            case ServiceState.STATE_EMERGENCY_ONLY:
-                // Set summary string of service state to radioInfo_service_out when
-                // service state is both STATE_OUT_OF_SERVICE & STATE_EMERGENCY_ONLY
-                display = mRes.getString(R.string.radioInfo_service_out);
-                break;
-            case ServiceState.STATE_POWER_OFF:
-                display = mRes.getString(R.string.radioInfo_service_off);
-                // Also set signal strength to 0
-                mSignalStrength.setSummary("0");
-                break;
-        }
+            }
 
-        setSummaryText(KEY_SERVICE_STATE, display);
+        String voiceDisplay = Utils.getServiceStateString(voiceState, mRes);
+        String dataDisplay = Utils.getServiceStateString(dataState, mRes);
+
+        setSummaryText(KEY_SERVICE_STATE, "Voice: " + voiceDisplay + " / Data: " + dataDisplay);
 
         if (serviceState.getRoaming()) {
             setSummaryText(KEY_ROAMING_STATE, mRes.getString(R.string.radioInfo_roaming_in));
@@ -406,13 +396,10 @@ public class SimStatus extends SettingsPreferenceFragment {
         mShowICCID = carrierConfig.getBoolean(
                 CarrierConfigManager.KEY_SHOW_ICCID_IN_SIM_STATUS_BOOL);
 
-        String rawNumber = mTelephonyManager.getLine1Number(mSir.getSubscriptionId());
-        String formattedNumber = null;
-        if (!TextUtils.isEmpty(rawNumber)) {
-            formattedNumber = PhoneNumberUtils.formatNumber(rawNumber);
-        }
+
         // If formattedNumber is null or empty, it'll display as "Unknown".
-        setSummaryText(KEY_PHONE_NUMBER, formattedNumber);
+        setSummaryText(KEY_PHONE_NUMBER,
+                DeviceInfoUtils.getFormattedPhoneNumber(getContext(), mSir));
         setSummaryText(KEY_IMEI, mPhone.getImei());
         setSummaryText(KEY_IMEI_SV, mPhone.getDeviceSvn());
 
