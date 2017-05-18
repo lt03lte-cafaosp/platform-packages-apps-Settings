@@ -1221,25 +1221,20 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
     }
 
     private boolean isWhiteListed(String mcc, String mnc) {
-        boolean mccAllowed = false;
-        boolean mncAllowed = false;
         String[] mccWhiteList = mContext.getResources()
                 .getStringArray(R.array.mccs_white_listed);
         String[] mncsWhiteList = mContext.getResources()
                 .getStringArray(R.array.mncs_white_listed);
-        for (String mccRegEx : mccWhiteList) {
-            mccAllowed |= Pattern.compile(mccRegEx).matcher(mcc).matches();
-            if (mccAllowed) {
-                break;
+        for (int i = 0; i < mccWhiteList.length; i++) {
+            boolean mccAllowed = false;
+            boolean mncAllowed = false;
+            mccAllowed |= Pattern.compile(mccWhiteList[i]).matcher(mcc).matches();
+            mncAllowed |= Pattern.compile(mncsWhiteList[i]).matcher(mnc).matches();
+            if (mccAllowed && mncAllowed) {
+                return true;
             }
         }
-        for (String mncRegEx : mncsWhiteList) {
-            mncAllowed |= Pattern.compile(mncRegEx).matcher(mnc).matches();
-            if (mncAllowed) {
-                break;
-            }
-        }
-        return mccAllowed && mncAllowed;
+        return false;
     }
 
     private boolean isCallStateIdle() {
