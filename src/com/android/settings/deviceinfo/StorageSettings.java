@@ -76,6 +76,7 @@ public class StorageSettings extends SettingsPreferenceFragment implements Index
 
     private static final String TAG_VOLUME_UNMOUNTED = "volume_unmounted";
     private static final String TAG_DISK_INIT = "disk_init";
+    static final int COLOR_PUBLIC = Color.parseColor("#ff9e9e9e");
 
     static int getColorPublic(Resources resources) {
         return resources.getColor(R.color.storage_public);
